@@ -43,6 +43,6 @@ def render(src, out, title, crumb, h1, tag, intro='', cur=None, sub=''):
 render('protocol-v2.md', 'protocol.html', 'Introspection v2: Protocol', 'Protocol v2', 'Introspection v2: Procedures', 'Frozen design')
 from build_v3 import subnav
 render('protocol-v3.md', 'v3-protocol.html', 'Introspection v3: Natural Swap', 'Protocol v3', 'Introspection v3: Natural-recommendation swap',
-       'Preliminary stage done',
+       'Running · amendments on the results page',
        '<p class="thanks">A new experiment: no hold instruction. The model answers a natural recommendation request, then reports which <em>other</em> items were strongly represented. The primary test swaps two such competitors without changing the answer. '
        'Results are on the <a href="v3.html">v3 results page</a>.</p>', cur='v3.html', sub=subnav('v3-protocol.html'))

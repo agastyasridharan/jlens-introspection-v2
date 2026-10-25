@@ -5,7 +5,8 @@ RES = os.path.join(HERE, '..', 'v3', 'results')
 E = html.escape
 CSS = open(os.path.join(HERE, 'style.css')).read()
 load = lambda n: json.load(open(os.path.join(RES, n))) if os.path.exists(os.path.join(RES, n)) else None
-S, LOG, P, J = load('state.json'), load('log.json'), load('prelim.json'), load('judge_validation.json')
+S, LOG, P, J, DV = load('state.json'), load('log.json'), load('prelim.json'), load('judge_validation.json'), load('dev.json')
+SETN = {'rb': 'block 53', 'band': 'blocks 48–53', 'site': 'assistant-start token', 'last5': 'last 5 prompt tokens'}
 CAT = {'instrument': 'Instruments', 'grocery': 'Groceries', 'animal': 'Animals', 'country': 'Countries'}
 COL = {'instrument': '#7a4fa3', 'grocery': '#b0702a', 'animal': '#2f8a57', 'country': '#235fa6'}
 NAV = [('index.html', 'Results (v2)'), ('protocol.html', 'Protocol v2'), ('v3.html', 'v3: Natural swap')]
@@ -105,6 +106,51 @@ def sections():
             op = ' open' if c in ('instrument',) else ''
             out.append(f'<details class="app"{op}><summary>{CAT[c]}: {sum(t["eligible"] for t in ts)}/24 eligible</summary><div>' +
                        table(['#', 'Scenario', 'Answer item X', 'X rank', 'Lens top items (corrected score)', 'B', 'C', 'Eligible'], rows, 'text') + '</div></details>')
+    if DV:
+        h2('dev', 'Development: edit setting and manipulation check (step 6)')
+        ch = DV['chosen']; ci = DV['criterion']
+        out.append(f'<p>{DV["n"]} new development situations (30 instruments, 15 countries; disjoint from the preliminary and future main situations), with the frozen block 53 and K = 10. '
+                   'For each situation and grid setting we edit the prompt forward pass (swap, or a norm-matched random control), then (a) regenerate the answer to check it is unchanged, and '
+                   '(b) feed the original answer back in word for word and read, at the token where the answer item&#8217;s name begins, <b>Δ = log p(C) − log p(B)</b> '
+                   '(each item&#8217;s best judge-labeled single-token form). <b>Edit-shift</b> = Δ under swap − Δ under control. No reports were collected.</p>')
+        out.append('<div class="answer"><span class="answer-tag">Step 6 result</span><ul>'
+                   f'<li><b>Chosen setting: {SETN[ch[0]]}, {SETN[ch[1]]}, α = {ch[2]}</b> (largest median edit-shift among settings with at least 80% of instrument answers unchanged).</li>'
+                   f'<li><b>Criterion met for both categories:</b> edit-shift positive in {100*ci["instrument"]["pos"]:.0f}% of instrument situations (mean {ci["instrument"]["mean"]:+.2f} nats [{ci["instrument"]["lo"]:+.2f}, {ci["instrument"]["hi"]:+.2f}]) '
+                   f'and {100*ci["country"]["pos"]:.0f}% of country situations ({ci["country"]["mean"]:+.2f} [{ci["country"]["lo"]:+.2f}, {ci["country"]["hi"]:+.2f}]); the protocol requires at least 75% and a lower bound above 0.</li>'
+                   '<li><b>The instrument effect is small.</b> B leads C by a median of 7.7 nats at the name position; the swap moves this by a median of 0.31 nats, and C never overtakes B (0/30). '
+                   'For countries the gap is a median 0.84 nats and C overtakes B in 20% of situations.</li>'
+                   '<li><b>Where the effect comes from:</b> editing block 53 alone barely moves the output (median shift 0.005–0.02 nats at the assistant-start token). Editing earlier blocks of the band and five prompt tokens rather than one gives most of the effect.</li></ul></div>')
+        keys = [tuple(k) for k in DV['settings']]
+        lab = lambda k: f'{"53" if k[0]=="rb" else "48–53"} · {"start" if k[1]=="site" else "last 5"} · α{k[2]}'
+        fig = dict(groups=[lab(k) for k in keys], series=[dict(name=CAT[c], color=COL[c], y=[DV['summary'][f'{c}|{k[0]}|{k[1]}|{k[2]}']['mean'] for k in keys],
+                   lo=[DV['summary'][f'{c}|{k[0]}|{k[1]}|{k[2]}']['lo'] for k in keys], hi=[DV['summary'][f'{c}|{k[0]}|{k[1]}|{k[2]}']['hi'] for k in keys]) for c in ('instrument', 'country')])
+        out.append('<figure class="wide" id="fig-dev"><div class="fig-panel"><div class="fig-top"><div class="fig-title">Edit-shift by grid setting (mean, nats)</div>'
+                   '<div class="legend" aria-hidden="true">' + ''.join(f'<span><i style="border-color:{COL[c]};border-top-width:6px"></i>{CAT[c]}</span>' for c in ('instrument', 'country')) +
+                   '</div></div><div id="chart-dev" class="chart" role="img" aria-label="Edit-shift by setting"></div>'
+                   '<div class="fig-note">Blocks · positions · α. Bootstrap 95% intervals over situations (5,000 resamples). Δ in nats.</div></div>'
+                   f'<figcaption><b>Figure 2.</b> Shifts grow with α, with five edited prompt tokens rather than one, and with the band rather than block 53 alone.</figcaption></figure>')
+        out.append('<script>window.DEVFIG = ' + json.dumps(fig) + ';</script>')
+        for c in ('instrument', 'country'):
+            rows = []
+            for k in keys:
+                v = DV['summary'][f'{c}|{k[0]}|{k[1]}|{k[2]}']
+                mark = ' <b>(chosen)</b>' if list(k) == ch else ''
+                rows.append([SETN[k[0]], SETN[k[1]], str(k[2]) + mark, f'{100*v["valid_swap"]:.0f}% / {100*v["valid_control"]:.0f}%', f'{v["median"]:+.3f}',
+                             f'{v["mean"]:+.3f} [{v["lo"]:+.3f}, {v["hi"]:+.3f}]', f'{100*v["pos"]:.0f}%', f'{100*v["flip"]:.0f}%', f'{100*v["rel"]:.1f}%'])
+            out.append(table(['Blocks', 'Positions', 'α', 'Answer unchanged (swap / control)', 'Median edit-shift', 'Mean [95% CI]', 'Shift > 0', 'C overtakes B', 'Edit / ‖h‖'], rows,
+                             cap=f'<b>{CAT[c]}</b> ({sum(1 for x in DV["situations"].values() if x["category"]==c)} situations).'))
+        out.append('<div class="answer warn"><span class="answer-tag">Amendments and implementation notes (Oct 25)</span><ul>'
+                   '<li><b>Band edits use unedited coordinates.</b> Re-applying the swap at each block of a band re-swaps coordinates already changed one block earlier (they cancel at α = 1 and blow up at α ≥ 2). '
+                   'Each band block is therefore set to the swapped values from the unedited pass at that block. For a single block this is the ordinary J++ swap.</li>'
+                   f'<li><b>B and C are ordered by coordinate.</b> The two top competitors by corrected score are kept, but B is now the one with the larger unedited coordinate at block 53 and the assistant-start token, so the swap lowers B and raises C. '
+                   f'This relabels {DV["reoriented"]["instrument"]}/30 instrument and {DV["reoriented"]["country"]}/15 country pairs. The swap itself is symmetric, so no run depends on the labels.</li>'
+                   '<li><b>Answer validity</b> is token-for-token identity; most changed answers keep the same item with different wording.</li></ul></div>')
+        rows = []
+        for i, v in DV['situations'].items():
+            p = DV['per'][f'{i}|{ch[0]}|{ch[1]}|{ch[2]}']
+            rows.append([i.split('-', 1)[1], E(v['X']), E(v['B']), E(v['C']), f'{-v["none_delta"]:+.2f}', f'{p["shift"]:+.2f}', '✓' if p['valid_swap'] else E((p['swap_answer'] or '')[:60])])
+        out.append('<details class="app"><summary>Per-situation results at the chosen setting</summary><div>' +
+                   table(['Situation', 'Answer item X', 'B', 'C', 'log p(B) − log p(C), no edit', 'Edit-shift', 'Answer under swap'], rows, 'text') + '</div></details>')
     h2('log', 'Log')
     out.append('<ol class="log">' + ''.join(f'<li><time>{e["t"]}</time><div class="entry"><p>{e["text"]}</p></div></li>' for e in reversed(LOG)) + '</ol>')
     return '\n'.join(out), toc
@@ -160,7 +206,16 @@ function render() {{
     yaxis:ax({{showgrid:true, gridcolor:"#efe8dc", title:{{text:"Items in top 100",font:{{size:12,color:"#8a7d6d"}}}}, rangemode:"tozero"}}),
     shapes:[{{type:"line", x0:CURVE.chosen, x1:CURVE.chosen, yref:"paper", y0:0, y1:1, line:{{color:"#8a7d6d", width:1, dash:"dot"}}}}]}}, {{displayModeBar:false, responsive:true}});
 }}
-let t; window.addEventListener("resize", () => {{ clearTimeout(t); t = setTimeout(render, 150); }}); render();
+function renderDev() {{
+  const el = document.getElementById("chart-dev"); const F = window.DEVFIG; if (!el || !F) return;
+  const tr = F.series.map(s => ({{type:"bar", name:s.name, x:F.groups, y:s.y, marker:{{color:s.color}},
+    error_y:{{type:"data", symmetric:false, array:s.hi.map((h,i)=>h-s.y[i]), arrayminus:s.lo.map((l,i)=>s.y[i]-l), color:"#8a7d6d", thickness:1.2, width:3}},
+    hovertemplate:"%{{x}}: %{{y:.3f}}<extra>"+s.name+"</extra>"}}));
+  Plotly.react(el, tr, {{font:{{family:FONT,size:12,color:"#5e5245"}}, paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)", showlegend:false, dragmode:false, height:340,
+    barmode:"group", bargap:0.25, margin:{{l:50,r:10,t:14,b:90}}, xaxis:ax({{type:"category", tickangle:-40}}),
+    yaxis:ax({{showgrid:true, gridcolor:"#efe8dc", title:{{text:"Edit-shift (nats)",font:{{size:12,color:"#8a7d6d"}}}}, zeroline:true, zerolinecolor:"#cfc4b4"}})}}, {{displayModeBar:false, responsive:true}});
+}}
+let t; window.addEventListener("resize", () => {{ clearTimeout(t); t = setTimeout(() => {{ render(); renderDev(); }}, 150); }}); render(); renderDev();
 </script>
 </body>
 </html>
