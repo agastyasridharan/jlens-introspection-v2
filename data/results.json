@@ -1,6 +1,6 @@
 {
  "tag": "Steps 0–7 done",
- "updated": "2026-10-25 13:35 ET",
+ "updated": "2026-10-25 13:37 ET",
  "log": [
   {
    "t": "Oct 25, 13:11 ET",
@@ -473,7 +473,7 @@
      ]
     }
    ],
-   "ymax": 100
+   "ymax": 60
   },
   "recog": {
    "groups": [
@@ -539,7 +539,8 @@
       855
      ]
     }
-   ]
+   ],
+   "ymax": 70
   },
   "perblock": {
    "blocks": [
@@ -1752,7 +1753,7 @@
       ]
      }
     ],
-    "ymax": 100
+    "ymax": 60
    },
    "recog": {
     "groups": [
@@ -1818,7 +1819,8 @@
        855
       ]
      }
-    ]
+    ],
+    "ymax": 70
    },
    "perblock": {
     "blocks": [

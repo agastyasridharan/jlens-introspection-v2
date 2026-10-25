@@ -54,7 +54,7 @@ function figPerblock() {
 function render() {
   figCurve(); figPerblock();
   if (R.agree) bars("chart-agree", R.agree.groups, R.agree.series, R.agree.ymax || 100);
-  if (R.recog) { R["chart-recog_chance"] = 25; bars("chart-recog", R.recog.groups, R.recog.series, 100); }
+  if (R.recog) { R["chart-recog_chance"] = 25; bars("chart-recog", R.recog.groups, R.recog.series, R.recog.ymax || 100); }
 }
 let tmr; window.addEventListener("resize", () => { clearTimeout(tmr); tmr = setTimeout(render, 150); });
 render();
