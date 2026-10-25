@@ -19,7 +19,7 @@ def load(name):
 
 state = load('state.json') or {}
 log = load('log.json') or []
-R = dict(tag='Updating live', updated=now(), log=log,
+R = dict(tag=state.get('tag', 'Updating live'), updated=now(), log=log,
          thanks='Qwen3.6-27B is asked to silently choose a grocery item, animal, or country for a setting and keep it in mind while copying a neutral sentence. '
                 'We read the J++ lens at every copied token, then ask the model (in separate branches) which item it was keeping in mind. '
                 'Design: <a href="protocol.html">protocol v2</a>. Step 8 (the causal swap) is deliberately not run here.',
