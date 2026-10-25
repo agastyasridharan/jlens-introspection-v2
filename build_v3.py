@@ -6,6 +6,8 @@ E = html.escape
 CSS = open(os.path.join(HERE, 'style.css')).read()
 load = lambda n: json.load(open(os.path.join(RES, n))) if os.path.exists(os.path.join(RES, n)) else None
 S, LOG, P, J, DV = load('state.json'), load('log.json'), load('prelim.json'), load('judge_validation.json'), load('dev.json')
+MN, RV = load('main.json'), load('report_validation.json')
+MD = json.load(open(os.path.join(HERE, '..', 'v3', 'stimuli', 'main_design.json'))) if MN else None
 SETN = {'rb': 'block 53', 'band': 'blocks 48–53', 'site': 'assistant-start token', 'last5': 'last 5 prompt tokens'}
 CAT = {'instrument': 'Instruments', 'grocery': 'Groceries', 'animal': 'Animals', 'country': 'Countries'}
 COL = {'instrument': '#7a4fa3', 'grocery': '#b0702a', 'animal': '#2f8a57', 'country': '#235fa6'}
@@ -23,7 +25,9 @@ def subnav(cur):
 
 SUBCSS = ('.subtabs{display:flex;gap:18px;font-family:var(--sans);font-size:14px;margin:-12px 0 20px}'
           '.subtabs a{color:var(--ink-2);text-decoration:none;padding:2px 0}.subtabs a[aria-current="page"]{color:var(--ink);font-weight:600;'
-          'border-bottom:2px solid var(--accent)}.subtabs a:hover{color:var(--accent)}')
+          'border-bottom:2px solid var(--accent)}.subtabs a:hover{color:var(--accent)}'
+          '.muted{color:var(--ink-3);font-size:.9em}pre.q{white-space:pre-wrap;font-family:var(--sans);font-size:14px;background:var(--panel);'
+          'border:1px solid var(--rule);border-radius:4px;padding:10px 12px;margin:4px 0 14px;overflow-x:auto}')
 
 
 def pill(s):
@@ -151,6 +155,102 @@ def sections():
             rows.append([i.split('-', 1)[1], E(v['X']), E(v['B']), E(v['C']), f'{-v["none_delta"]:+.2f}', f'{p["shift"]:+.2f}', '✓' if p['valid_swap'] else E((p['swap_answer'] or '')[:60])])
         out.append('<details class="app"><summary>Per-situation results at the chosen setting</summary><div>' +
                    table(['Situation', 'Answer item X', 'B', 'C', 'log p(B) − log p(C), no edit', 'Edit-shift', 'Answer under swap'], rows, 'text') + '</div></details>')
+
+    if MN:
+        from collections import Counter
+        G = MN['groups']; R = MN['rows']; Dm = {t['id']: t for t in MD['trials']}
+        pct = lambda a, b: f'{a}/{b} ({100*a/b:.0f}%)' if b else '—'
+        ci = lambda v: f'{100*v["diff"]:+.1f} pp [{100*v["lo"]:+.1f}, {100*v["hi"]:+.1f}]'
+        h2('main', 'Main situations (step 7)')
+        out.append('<p>320 new requests (160 per kept category), written and screened like the earlier sets, disjoint from them, and frozen before generation. '
+                   'Every answer ended naturally; the prompt-only replay matched the full-sequence readout to within 9.2e-5. Eligibility used the frozen block 53 and K = 10, '
+                   'and B/C were ordered by unedited coordinate (B larger, so the swap lowers B and raises C). All eligible situations entered the swap stage.</p>')
+        rows = []
+        for c in ('instrument', 'country'):
+            ts = [t for t in MD['trials'] if t['category'] == c]
+            sk = Counter(v for k, v in MD['skipped'].items() if k.startswith(f'm-{c}-'))
+            rows.append([CAT[c], f'{len(ts)}/160', ', '.join(f'{E(k)} ({v})' for k, v in sk.items()) or '—',
+                         ', '.join(f'{E(x)} ({k})' for x, k in Counter(t['X'] for t in ts).most_common(4)),
+                         ', '.join(f'{E(a)}/{E(b)} ({k})' for (a, b), k in Counter(tuple(sorted((t['B'], t['C']))) for t in ts).most_common(4)),
+                         str(sum(t['reoriented'] for t in ts)), str(sum(t['filled'] for t in ts))])
+        out.append(table(['Category', 'Eligible', 'Not eligible', 'Most common answers X', 'Most common B/C pairs', 'Pairs relabeled by coordinate', 'Menu options filled at random'], rows, 'text'))
+        h2('swap', 'Swap stage: reports (steps 8–10)')
+        a = G['all']
+        out.append('<p>For each eligible situation we build four prompt states at the frozen setting (blocks 48–53, last five prompt tokens, α = 4): <b>no edit</b>, <b>swap</b> (B↔C), '
+                   '<b>control</b> (norm-matched random direction orthogonal to B and C) and <b>injection</b> (raise C only). The model regenerates its answer from each state; '
+                   'only states whose answer is token-for-token identical are kept. From each kept state, in separate branches with the answer in context, we ask the competitor question '
+                   '(free naming, recognition in two menu orders), the second-choice question and, for no edit, the remaining question variants. Two further conditions use swap and control only: '
+                   'the <b>late edit</b> (no prompt edit; the same edit at every token of the appended competitor question) and <b>edited third-person prediction</b> '
+                   '(another-instance prediction with the edit at the last five tokens of the quoted request). “Follow” means the report names C.</p>')
+        out.append('<div class="answer"><span class="answer-tag">Steps 8–10 result</span><ul>'
+                   f'<li><b>Primary outcome, report-follow: {ci(a["report_follow"])}.</b> The self-report named C in {a["report_follow"]["swap"]} of {a["report_follow"]["n"]} situations under the swap and {a["report_follow"]["control"]} under the control (exact McNemar p = {a["report_follow"]["p"]:.2g}). '
+                   f'Instruments {G["instrument"]["report_follow"]["swap"]} vs {G["instrument"]["report_follow"]["control"]} of {G["instrument"]["report_follow"]["n"]}; countries {G["country"]["report_follow"]["swap"]} vs {G["country"]["report_follow"]["control"]} of {G["country"]["report_follow"]["n"]}.</li>'
+                   '<li><b>Reports are essentially unchanged by the prompt edit.</b> 225/233 swap and 219/222 control free-naming reports are identical, character for character, to the no-edit report; the first recognition order is identical in 232/233 and 222/222. '
+                   'Recognition, second choice, injection and edited third-person prediction show no difference between swap and control.</li>'
+                   f'<li><b>The late edit moves reports strongly: {ci(a["late_follow"])}</b> ({a["late_follow"]["swap"]} vs {a["late_follow"]["control"]} of {a["late_follow"]["n"]}). '
+                   f'The timing contrast (early − late) is {100*a["timing_contrast"]["diff"]:+.0f} pp [{100*a["timing_contrast"]["lo"]:+.0f}, {100*a["timing_contrast"]["hi"]:+.0f}]. The lens directions for B and C do steer the report when they are present at the question.</li>'
+                   '<li><b>Reading (pre-registered table):</b> edit-shift holds, report does not follow → the report does not read this answer-time state. '
+                   'Because even the random control barely reaches the report, this is a statement about edits small enough to keep the answer unchanged; it does not exclude effects of larger edits.</li></ul></div>')
+        meas = [('Self-report (free naming)', 'report_follow'), ('Second choice', 'second_choice'), ('Injection vs control', 'injection'),
+                ('Edited third-person', 'third_follow'), ('Late edit', 'late_follow')]
+        fig = dict(groups=[m for m, _ in meas], swap=[100 * a[k]['swap'] / a[k]['n'] for _, k in meas], control=[100 * a[k]['control'] / a[k]['n'] for _, k in meas],
+                   n=[a[k]['n'] for _, k in meas])
+        out.append('<figure class="wide" id="fig-main"><div class="fig-panel"><div class="fig-top"><div class="fig-title">Share of reports naming C (both categories)</div>'
+                   '<div class="legend" aria-hidden="true"><span><i style="border-color:#235fa6;border-top-width:6px"></i>Swap (or injection)</span><span><i style="border-color:#b8ab98;border-top-width:6px"></i>Control</span></div></div>'
+                   '<div id="chart-main" class="chart" role="img" aria-label="Share naming C by condition"></div>'
+                   '<div class="fig-note">Paired situations valid under both conditions (n = 184; injection n = 195). The late edit needs no validity check; it uses the same 184 situations.</div></div>'
+                   '<figcaption><b>Figure 3.</b> Only the late edit, placed on the question tokens, makes the report name C. Edits to the state before the answer leave every report measure flat.</figcaption></figure>')
+        out.append('<script>window.MAINFIG = ' + json.dumps(fig) + ';</script>')
+        rows = []
+        for lab, k in [('Report-follow (primary)', 'report_follow'), ('B-retention (names B)', 'B_retention'), ('Second-choice follow', 'second_choice'), ('Injection follow', 'injection'),
+                       ('Late-edit follow', 'late_follow'), ('Edited third-person follow', 'third_follow')]:
+            rows.append([lab] + [f'{G[c][k]["swap"]} vs {G[c][k]["control"]} / {G[c][k]["n"]}<br><span class="muted">{ci(G[c][k])}, p = {G[c][k]["p"]:.2g}</span>' for c in ('instrument', 'country', 'all')])
+        for lab, k in [('Second-choice contrast (report − second choice)', 'second_choice_contrast'), ('Timing contrast (early − late)', 'timing_contrast'), ('Self vs other (report − third-person)', 'self_vs_other')]:
+            rows.append([lab] + [f'{100*G[c][k]["diff"]:+.1f} pp [{100*G[c][k]["lo"]:+.1f}, {100*G[c][k]["hi"]:+.1f}]' for c in ('instrument', 'country', 'all')])
+        for lab, key in [('Recognition: chose C', 'C'), ('Recognition: chose B', 'B')]:
+            rows.append([lab] + [f'{G[c]["recognition"]["swap"][key]} vs {G[c]["recognition"]["control"][key]} / {G[c]["recognition"]["swap"]["n"]} answers' for c in ('instrument', 'country', 'all')])
+        rows.append(['Follow among flipped situations (C overtakes B)'] + [f'{G[c]["report_follow_flipped"]["swap_C"]}/{G[c]["report_follow_flipped"]["n"]}' for c in ('instrument', 'country', 'all')])
+        rows.append(['Report-follow, stable top competitor (block 52 = 53)'] + [f'{G[c]["by_stability"]["True"]["swap"]} vs {G[c]["by_stability"]["True"]["control"]} / {G[c]["by_stability"]["True"]["n"]}' for c in ('instrument', 'country', 'all')])
+        out.append(table(['Measure (swap vs control)', 'Instruments', 'Countries', 'Both'], rows, 'text', cap='<b>Primary and secondary outcomes.</b> Counts are situations (recognition: answers over two menu orders). Intervals: paired bootstrap over situations (10,000). p: exact McNemar.'))
+        rows = []
+        for c in ('instrument', 'country', 'all'):
+            e = G[c]['edit_shift']; v = G[c]['validity']
+            rows.append([CAT.get(c, 'Both'), f'{e["mean"]:+.2f} [{e["lo"]:+.2f}, {e["hi"]:+.2f}]', f'{e["median"]:+.2f}', f'{100*e["pos"]:.0f}%', f'{100*e["flip"]:.0f}%', f'{e["inject_shift"]:+.2f}'] +
+                        [pct(v[m]['valid'], v[m]['n']) for m in ('swap', 'control', 'inject')])
+        out.append(table(['Category', 'Edit-shift mean [95% CI]', 'Median', 'Shift > 0', 'C overtakes B', 'Injection shift (median)', 'Answer unchanged: swap', 'control', 'injection'], rows,
+                         cap='<b>Manipulation check and validity on the main set.</b> Edit-shift as in step 6 (nats, at the token where the answer&#8217;s item name begins).',
+                         note='The country share with a positive shift (73%) is just below the 75% development threshold; its lower bound stays above 0.'))
+        rows = []
+        for m in ('none', 'swap', 'control', 'inject'):
+            mx = a['report_mix'][m]
+            rows.append([m, str(mx['n']), str(mx['Item']), str(mx['B']), str(mx['C']), str(mx['Named']), str(mx['Abstention']), str(mx['NotItem'] + mx['Truncated'])])
+        out.append(table(['State', 'Valid', 'Names an item', 'Names B', 'Names C', 'Names X / a named item', 'Abstains', 'Other'], rows,
+                         cap='<b>What the competitor question returns</b> (free naming, condition 1, both categories). Most reports name a common item that is neither B nor C (instruments: guitar, piano; countries: France, China).'))
+        h2('corr', 'Without an edit: self-report vs another-instance prediction')
+        rows = []
+        for c in ('instrument', 'country', 'all'):
+            k = G[c]['correlational']; n0 = k['agree_top_free1']['n']
+            rows.append([CAT.get(c, 'Both'), f'{k["agree_top_free1"]["self"]} vs {k["agree_top_free1"]["context"]} / {n0}', f'{k["agree_top_free3"]["self"]} vs {k["agree_top_free3"]["context"]}',
+                         f'{k["agree_top_free2"]["self"]} vs {k["agree_top_free2"]["context"]}', f'{k["recog_req"]["self"]} vs {k["recog_req"]["context"]} / {k["recog_req"]["n"]}',
+                         f'{k["recog_req"]["self_rank"]:.2f} vs {k["recog_req"]["context_rank"]:.2f}',
+                         f'{k["beta_L"]["self"]["beta"]:+.2f}±{k["beta_L"]["self"]["se"]:.2f} vs {k["beta_L"]["context"]["beta"]:+.2f}±{k["beta_L"]["context"]["se"]:.2f}', pct(k['anchor_X']['X'], n0)])
+        out.append(table(['Category', 'Free naming = top competitor (cond. 1)', 'Cond. 3 (must name)', 'Cond. 2 (may abstain)', 'Recognition = top competitor', 'Mean menu rank of choice', 'β_L (self vs context)', 'Anchor question returns X'], rows,
+                         cap='<b>Correlational outcomes</b> (no-edit state; self vs context prediction). “Top competitor” is the highest corrected score among competitors.',
+                         note='When abstention is allowed (condition 2), the model abstains about itself in 295/307 situations and about another instance in 159/307. Self-report has no advantage on any agreement measure.'))
+        if RV:
+            out.append(f'<p class="table-note">Judge report labels for instruments (new category): all {RV["n"]} distinct main-stage report strings hand-checked, {RV["correct"]}/{RV["n"]} correct (the error: “bell” labeled not-an-item); rerun identity {RV["rerun_identical"]}/{RV["n"]}. '
+                       'Country report labels were validated in v2. Reports such as “acoustic guitar” are kept distinct from “guitar”; matching on the head noun would change 5 reports and no swap-vs-control count.</p>')
+        t0 = MD['trials'][0]
+        out.append('<details class="app"><summary>Exact questions (one instrument situation)</summary><div>' + ''.join(
+            f'<p><b>{E(k)}</b></p><pre class="q">{E(v)}</pre>' for k, v in [('Competitor question, free naming 1', t0['self_q']['free1']), ('Recognition, answer required', t0['self_q']['rec_req_0']),
+                                                                                ('Second choice', t0['self_q']['second']), ('Anchor', t0['self_q']['anchor']), ('Context prediction (recognition, abstention allowed)', t0['context_q']['ctx_rec_abs_0'])]) + '</div></details>')
+        rows = []
+        for t, r in R.items():
+            sh = lambda m: E(r[m].get('free1') or '—') if r[m]['valid'] else '<span class="muted">answer changed</span>'
+            rows.append([t.split('-', 1)[1], E(r['X']), E(r['B']), E(r['C']), sh('none'), sh('swap'), sh('control'), E(r['late_swap'] or '—'), E(r['late_control'] or '—'), E(r['context'].get('free1') or '—')])
+        rows.sort(key=lambda x: x[0])
+        out.append('<details class="app"><summary>Per-situation reports (free naming 1)</summary><div>' +
+                   table(['Situation', 'X', 'B', 'C', 'No edit', 'Swap', 'Control', 'Late swap', 'Late control', 'Other instance'], rows, 'text') + '</div></details>')
     h2('log', 'Log')
     out.append('<ol class="log">' + ''.join(f'<li><time>{e["t"]}</time><div class="entry"><p>{e["text"]}</p></div></li>' for e in reversed(LOG)) + '</ol>')
     return '\n'.join(out), toc
@@ -215,7 +315,14 @@ function renderDev() {{
     barmode:"group", bargap:0.25, margin:{{l:50,r:10,t:14,b:90}}, xaxis:ax({{type:"category", tickangle:-40}}),
     yaxis:ax({{showgrid:true, gridcolor:"#efe8dc", title:{{text:"Edit-shift (nats)",font:{{size:12,color:"#8a7d6d"}}}}, zeroline:true, zerolinecolor:"#cfc4b4"}})}}, {{displayModeBar:false, responsive:true}});
 }}
-let t; window.addEventListener("resize", () => {{ clearTimeout(t); t = setTimeout(() => {{ render(); renderDev(); }}, 150); }}); render(); renderDev();
+function renderMain() {{
+  const el = document.getElementById("chart-main"); const F = window.MAINFIG; if (!el || !F) return;
+  const mk = (name, y, color) => ({{type:"bar", name:name, x:F.groups, y:y, marker:{{color:color}}, customdata:F.n, hovertemplate:"%{{x}}: %{{y:.1f}}% (n = %{{customdata}})<extra>"+name+"</extra>"}});
+  Plotly.react(el, [mk("Swap", F.swap, "#235fa6"), mk("Control", F.control, "#b8ab98")], {{font:{{family:FONT,size:12,color:"#5e5245"}}, paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)", showlegend:false, dragmode:false, height:320,
+    barmode:"group", bargap:0.3, margin:{{l:50,r:10,t:14,b:60}}, xaxis:ax({{type:"category"}}),
+    yaxis:ax({{showgrid:true, gridcolor:"#efe8dc", title:{{text:"Reports naming C (%)",font:{{size:12,color:"#8a7d6d"}}}}, rangemode:"tozero"}})}}, {{displayModeBar:false, responsive:true}});
+}}
+let t; window.addEventListener("resize", () => {{ clearTimeout(t); t = setTimeout(() => {{ render(); renderDev(); renderMain(); }}, 150); }}); render(); renderDev(); renderMain();
 </script>
 </body>
 </html>
