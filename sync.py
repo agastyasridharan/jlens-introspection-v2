@@ -22,7 +22,7 @@ log = load('log.json') or []
 R = dict(tag=state.get('tag', 'Updating live'), updated=now(), log=log,
          thanks='Qwen3.6-27B is asked to silently choose a grocery item, animal, or country for a setting and keep it in mind while copying a neutral sentence. '
                 'We read the J++ lens at every copied token, then ask the model (in separate branches) which item it was keeping in mind. '
-                'Design: <a href="protocol.html">protocol v2</a>. Step 8 (the causal swap) is deliberately not run here.',
+                'Design: <a href="protocol.html">protocol v2</a>. Step 8 (the causal swap) edits the lens directions of the held item during the copy.',
          summary_tag=state.get('summary_tag', 'Summary so far'), summary=state.get('summary', []),
          status=state.get('status', []), appendix=state.get('appendix', []), charts={})
 
@@ -38,6 +38,11 @@ main = load('main.json')
 if main:
     R['main'] = main
     R['charts'].update(main.get('charts', {}))
+
+sw = load('swap.json')
+if sw:
+    R['swap'] = sw
+    R['charts'].update({'chart-swap': sw['charts']['swap'], 'chart-stab': sw['charts']['stab']})
 
 json.dump(R, open(os.path.join(HERE, 'data/results.json'), 'w'), indent=1, ensure_ascii=False)
 subprocess.run(['python3', os.path.join(HERE, 'build.py')], check=True)

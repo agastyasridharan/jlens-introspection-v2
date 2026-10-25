@@ -91,7 +91,21 @@ def sections():
         if mn.get('examples_html'):
             S.append(mn['examples_html'])
 
-    h2('log', '7', 'Log')
+    sw = R.get('swap')
+    if sw:
+        h2('stability', '7', 'Is the lens readout stable across copied positions?')
+        S.append(sw['stab']['html'])
+        S.append(figure('stab', 'Condition-2 agreement by readout stability', [('Agreement', '#235fa6', 6)], sw['stab']['note'], sw['stab']['caption']))
+        S.append(sw['stab']['tables'])
+        x = sw['swap']
+        h2('swap', '8', 'Causal swap test (step 8)')
+        S.append(x['intro']); S.append(x['answer'])
+        S.append(figure('swap', 'Free-naming report after editing the hold phase',
+                        [('Names A', '#235fa6', 6), ('Names B', '#b0702a', 6), ('Differs from no-edit report', '#2f8a57', 6)], x['chart_note'], x['chart_caption']))
+        S.append(x['cond_table']); S.append(x['comp_table']); S.append(x['coord_table']); S.append(x['examples'])
+        S.append('<h3>Disclosures</h3>' + x['disclosures'])
+
+    h2('log', '9', 'Log')
     S.append('<ol class="log">' + ''.join(f'<li><time>{e["t"]}</time><div class="entry"><p>{e["text"]}</p></div></li>' for e in reversed(R['log'])) + '</ol>')
     h2('appendix', '', 'Appendix')
     for a in R['appendix']:
@@ -131,7 +145,7 @@ page = f'''<!doctype html>
   <ul>{summary}</ul>
 </div>
 {body}
-<p class="footer">Data: <code>data/results.json</code>. Last updated {R["updated"]}. Step 8 (causal swap) is not run here.</p>
+<p class="footer">Data: <code>data/results.json</code>. Last updated {R["updated"]}. </p>
 </main>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>

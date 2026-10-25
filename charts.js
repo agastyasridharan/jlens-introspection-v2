@@ -30,7 +30,7 @@ function figCurve() {
       font: { family: FONT, size: 12, color: C.ink2 } }] });
 }
 
-function bars(id, groups, series, ymax) {
+function bars(id, groups, series, ymax, ytitle) {
   const el = document.getElementById(id); if (!el) return;
   const traces = series.map(s => ({ type: "bar", name: s.name, x: groups, y: s.y, marker: { color: s.color, line: { color: C.panel, width: 2 } },
     error_y: { type: "data", symmetric: false, array: s.hi.map((h, i) => h - s.y[i]), arrayminus: s.lo.map((l, i) => s.y[i] - l), color: C.ink3, thickness: 1.2, width: 3 },
@@ -38,7 +38,7 @@ function bars(id, groups, series, ymax) {
     textfont: { family: FONT, size: 10.5, color: C.ink2 }, hovertemplate: "%{x}: %{y:.1f}%<extra>" + s.name + "</extra>" }));
   const shapes = R[id + "_chance"] ? [{ type: "line", xref: "paper", x0: 0, x1: 1, y0: R[id + "_chance"], y1: R[id + "_chance"], line: { color: C.ink3, width: 1, dash: "dot" } }] : [];
   draw(el, traces, { barmode: "group", bargap: 0.25, bargroupgap: 0.05, height: 330, margin: { l: 48, r: 8, t: 20, b: 34 }, shapes,
-    xaxis: axis({ type: "category" }), yaxis: grid({ range: [0, ymax], ticksuffix: "%", title: ttl("Matches lens reference"), showline: false, ticks: "" }) });
+    xaxis: axis({ type: "category" }), yaxis: grid({ range: [0, ymax], ticksuffix: "%", title: ttl(ytitle || "Matches lens reference"), showline: false, ticks: "" }) });
 }
 
 function figPerblock() {
@@ -54,6 +54,7 @@ function figPerblock() {
 function render() {
   figCurve(); figPerblock();
   if (R.agree) bars("chart-agree", R.agree.groups, R.agree.series, R.agree.ymax || 100);
+  ["chart-swap", "chart-stab"].forEach(k => { if (R[k]) bars(k, R[k].groups, R[k].series, R[k].ymax, R[k].ytitle); });
   if (R.recog) { R["chart-recog_chance"] = 25; bars("chart-recog", R.recog.groups, R.recog.series, R.recog.ymax || 100); }
 }
 let tmr; window.addEventListener("resize", () => { clearTimeout(tmr); tmr = setTimeout(render, 150); });

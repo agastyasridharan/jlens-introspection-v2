@@ -1,6 +1,6 @@
 {
- "tag": "Steps 0–7 done",
- "updated": "2026-10-25 13:37 ET",
+ "tag": "Steps 0–8 done",
+ "updated": "2026-10-25 13:52 ET",
  "log": [
   {
    "t": "Oct 25, 13:11 ET",
@@ -25,10 +25,18 @@
   {
    "t": "Oct 25, 13:35 ET",
    "text": "Step-7 measures: condition-2 agreement 29.3% (permutation baseline 7.5%), β_L = 1.31 [1.16, 1.46], recognition 43.2% (chance 25%). Bootstrap switched from Newton to bisection after Newton oscillated on some resamples. Stopping before step 8, as instructed."
+  },
+  {
+   "t": "Oct 25, 13:45 ET",
+   "text": "Step 8 swap ran on 8 GPUs: 120 situations × 5 conditions, all copies identical to the originals. Reports judge-labeled with the frozen report judge."
+  },
+  {
+   "t": "Oct 25, 13:52 ET",
+   "text": "Step-8 measures: B named 0/120 in every condition; A named 20% after swap vs 32.5% after control (α = 1); recognition unchanged. Coordinate diagnostic shows the swap mainly suppresses A. Added position-stability analysis (section 7)."
   }
  ],
- "thanks": "Qwen3.6-27B is asked to silently choose a grocery item, animal, or country for a setting and keep it in mind while copying a neutral sentence. We read the J++ lens at every copied token, then ask the model (in separate branches) which item it was keeping in mind. Design: <a href=\"protocol.html\">protocol v2</a>. Step 8 (the causal swap) is deliberately not run here.",
- "summary_tag": "Summary (steps 0–7 complete; step 8 not run)",
+ "thanks": "Qwen3.6-27B is asked to silently choose a grocery item, animal, or country for a setting and keep it in mind while copying a neutral sentence. We read the J++ lens at every copied token, then ask the model (in separate branches) which item it was keeping in mind. Design: <a href=\"protocol.html\">protocol v2</a>. Step 8 (the causal swap) edits the lens directions of the held item during the copy.",
+ "summary_tag": "Summary (steps 0–8 complete)",
  "summary": [
   "<b>All 480 main copies valid; 454/480 eligible</b> at the frozen readout block 54 with K = 10.",
   "<b>Free naming (primary, condition 2): the report names the lens reference item in 29.3% of eligible trials</b> (133/454; groceries 25%, animals 26%, countries 37%), vs 7.5% when reports are paired with other trials’ reference items.",
@@ -36,7 +44,10 @@
   "<b>Recognition among the lens top 4: 43.2% pick the reference item</b> [39.0, 47.5] vs 25% chance; mean lens rank of the pick 2.03.",
   "<b>Abstention dominates when offered:</b> with “or NONE”, the model abstains in 96% (groceries), 67% (animals) and 95% (countries) of trials; with no abstention option, 38/152 country answers are refusals (“I cannot reveal the country…”).",
   "<b>Agreement is concentrated in single-token reports</b> (38% vs 10% for multi-token names the lens cannot show) and rises steadily over the late blocks (7% at block 36, 15% at 42, 28% at 54).",
-  "<b>Caveat:</b> outcomes 1–2 are correlational. The setting is still in context, so lens and report could both follow the setting rather than the report reading the hold-phase state; the protocol’s later controls and the step-8 swap address this."
+  "<b>Step 8 (causal swap): editing the held item&#8217;s lens direction removes it from the report but never installs the swapped-in item.</b> Over 120 situations, the report names A in 20% after the swap vs 32.5% after a norm-matched random control (&minus;12.5 pp [&minus;18.3, &minus;6.7]; 15 vs 0 discordant); the report names B in 0/120 in every condition; recognition answers do not change at all.",
+  "<b>The swap acts mainly as A-suppression</b>: before the edit the hidden state sits near zero on v<sub>A</sub> and well below zero on v<sub>B</sub>, so exchanging the coordinates lowers A and barely raises B.",
+  "<b>The lens readout varies strongly across copied positions</b> (the reference is the positional winner at only 12% of positions; ~5 distinct winners per trial). Agreement is higher in stable trials (38% vs 25–27%), but counting any positional winner as a match does not raise agreement above its own chance level, so averaging is not hiding a better reference.",
+  "<b>Caveat:</b> the swap shows the report depends on the A direction during the hold phase, but not that the model reads out an arbitrary installed item; the setting is still in context, so lens and report could both follow the setting."
  ],
  "status": [
   {
@@ -81,14 +92,19 @@
   },
   {
    "step": "8",
-   "what": "Causal swap test",
-   "status": "skip"
+   "what": "Causal swap test (120 situations; swap and norm-matched control at α = 1, 2; plus no-edit)",
+   "status": "done"
+  },
+  {
+   "step": "+",
+   "what": "Position-stability analysis of the lens readout (not in protocol)",
+   "status": "done"
   }
  ],
  "appendix": [
   {
    "title": "Implementation notes and deviations",
-   "html": "<ul><li><b>Judge model.</b> <code>gpt-5.4-mini-2026-03-17</code>, reasoning off, temperature 0, strict JSON schema, one input per call (the judge never sees other tokens, the trial, or the setting). We first tried <code>gpt-5.4-nano</code>; on 25 hand-made probe tokens it labeled incomplete words such as “pomegran” and “banan” as Items (4/25 errors vs 1/25 for mini, the one being a Fragment), so we switched before labeling any data.</li><li><b>Lens log-probabilities</b> are a log-softmax over the vocabulary after removing tokens with no letter or digit (the J++ readout filter), so baseline correction compares like with like.</li><li><b>Hold-phase and free-naming generation ran for all 516 trials in one pass,</b> before the readout block and K were fixed. Nothing in the hold phase or free naming depends on the block or K, and the main-trial lens data are not analyzed until both are frozen from the preliminary trials. Recognition (which needs the readout block) runs afterwards from the saved post-hold state.</li><li><b>Settings</b> were generated with <code>gpt-5.5</code> (5 thematic batches of 60 per category), screened for naming any specific item, food, animal, country, city, nationality or language, screened for category fit, deduplicated against each other and the preliminary settings, and 160 per category drawn with a fixed seed. Frozen before any hold-phase trial.</li><li><b>Carriers</b> are balanced: each of the 12 carriers is used 40 times in the main experiment and twice in the preliminary trials.</li><li><b>Hand-checks</b> of judge labels (step 0 validation) are done by Claude, not by a human; the sampled labels are listed on this page so they can be audited.</li><li><b>Fragment labels are noisy</b> (about 72% correct on a check of 47 Fragment labels: many short prefixes such as “ Aust” or “ Cri” are assigned to one country even though they begin several). The Fragment sensitivity analysis should be read with that in mind.</li></ul>"
+   "html": "<ul><li><b>Judge model.</b> <code>gpt-5.4-mini-2026-03-17</code>, reasoning off, temperature 0, strict JSON schema, one input per call (the judge never sees other tokens, the trial, or the setting). We first tried <code>gpt-5.4-nano</code>; on 25 hand-made probe tokens it labeled incomplete words such as “pomegran” and “banan” as Items (4/25 errors vs 1/25 for mini, the one being a Fragment), so we switched before labeling any data.</li><li><b>Lens log-probabilities</b> are a log-softmax over the vocabulary after removing tokens with no letter or digit (the J++ readout filter), so baseline correction compares like with like.</li><li><b>Hold-phase and free-naming generation ran for all 516 trials in one pass,</b> before the readout block and K were fixed. Nothing in the hold phase or free naming depends on the block or K, and the main-trial lens data are not analyzed until both are frozen from the preliminary trials. Recognition (which needs the readout block) runs afterwards from the saved post-hold state.</li><li><b>Settings</b> were generated with <code>gpt-5.5</code> (5 thematic batches of 60 per category), screened for naming any specific item, food, animal, country, city, nationality or language, screened for category fit, deduplicated against each other and the preliminary settings, and 160 per category drawn with a fixed seed. Frozen before any hold-phase trial.</li><li><b>Carriers</b> are balanced: each of the 12 carriers is used 40 times in the main experiment and twice in the preliminary trials.</li><li><b>Hand-checks</b> of judge labels (step 0 validation) are done by Claude, not by a human; the sampled labels are listed on this page so they can be audited.</li><li><b>Fragment labels are noisy</b> (about 72% correct on a check of 47 Fragment labels: many short prefixes such as “ Aust” or “ Cri” are assigned to one country even though they begin several). The Fragment sensitivity analysis should be read with that in mind.</li><li><b>Step 8 additions.</b> A no-edit condition was added as the reference for &#8220;report changed&#8221;. B tokens copy A&#8217;s casing and spacing. Six sampled situations without a cased-script A token were replaced. The swap is applied at every copied-token forward pass during regenerated hold phases; copies stayed identical in all 600 runs.</li><li><b>Position stability</b> (section 7) was added in response to a question about ambiguous lens readouts; it is post hoc.</li></ul>"
   }
  ],
  "charts": {
@@ -715,6 +731,129 @@
     29.295154185022028
    ],
    "chosen": 54
+  },
+  "chart-swap": {
+   "groups": [
+    "No edit",
+    "Swap α = 1",
+    "Swap α = 2",
+    "Control α = 1",
+    "Control α = 2"
+   ],
+   "series": [
+    {
+     "name": "Report names A (retained)",
+     "color": "#235fa6",
+     "y": [
+      32.5,
+      20.0,
+      18.333333333333332,
+      32.5,
+      30.833333333333332
+     ],
+     "lo": [
+      24.775726408835432,
+      13.824380919983048,
+      12.430210244218538,
+      24.775726408835432,
+      23.27261218267573
+     ],
+     "hi": [
+      41.309983078122116,
+      28.03683534337273,
+      26.201073589323663,
+      41.309983078122116,
+      39.58316487446824
+     ]
+    },
+    {
+     "name": "Report names B (followed swap)",
+     "color": "#b0702a",
+     "y": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "lo": [
+      -3.469446951953614e-16,
+      -3.469446951953614e-16,
+      -3.469446951953614e-16,
+      -3.469446951953614e-16,
+      -3.469446951953614e-16
+     ],
+     "hi": [
+      3.1020271055929514,
+      3.1020271055929514,
+      3.1020271055929514,
+      3.1020271055929514,
+      3.1020271055929514
+     ]
+    },
+    {
+     "name": "Report differs from no-edit report",
+     "color": "#2f8a57",
+     "y": [
+      0.0,
+      15.0,
+      17.5,
+      0.0,
+      5.0
+     ],
+     "lo": [
+      -3.469446951953614e-16,
+      9.703734033668816,
+      11.740448670592563,
+      -3.469446951953614e-16,
+      2.3114049304474236
+     ],
+     "hi": [
+      3.1020271055929514,
+      22.46768494024625,
+      25.275868948042856,
+      3.1020271055929514,
+      10.480419464586234
+     ]
+    }
+   ],
+   "ymax": 50,
+   "ytitle": "Share of situations"
+  },
+  "chart-stab": {
+   "groups": [
+    "Least stable third",
+    "Middle third",
+    "Most stable third"
+   ],
+   "series": [
+    {
+     "name": "Condition-2 agreement",
+     "color": "#235fa6",
+     "y": [
+      26.666666666666668,
+      23.703703703703702,
+      38.1294964028777
+     ],
+     "lo": [
+      20.743199825776976,
+      17.320120040135674,
+      30.477067539639453
+     ],
+     "hi": [
+      33.56529183225908,
+      31.542468694076554,
+      46.42041890688592
+     ],
+     "n": [
+      180,
+      135,
+      139
+     ]
+    }
+   ],
+   "ymax": 60,
+   "ytitle": "Matches lens reference"
   }
  },
  "judge_html": "<p>Judge: <code>gpt-5.4-mini-2026-03-17</code>, reasoning off, temperature 0, strict JSON schema, one input per call. Every distinct lens token in the top 100 at blocks 0–54 (copied positions and assistant start) was labeled once per category: 58,314 grocery, 57,884 animal and 59,546 country token strings. Free-naming answers: 183 distinct strings.</p><div class=\"table-wrap\"><table><thead><tr><th>Check</th><th>Sample</th><th>Agreement</th><th>Criterion</th><th>Result</th></tr></thead><tbody><tr><td>Token labels, uniform random</td><td>200</td><td>197/200 (98.5%)</td><td>≥95%</td><td><span class=\"pill pass\">pass</span></td></tr><tr><td>Report labels, uniform random</td><td>100</td><td>98/100 (98%)</td><td>≥95%</td><td><span class=\"pill pass\">pass</span></td></tr><tr><td>Rerun on 200 inputs (100 uniform + 100 non-None)</td><td>200</td><td>192/200 identical; 199/200 on the final primary (Item) label</td><td>identical</td><td><span class=\"pill partial\">amended</span></td></tr><tr><td>Extra: non-None token labels only</td><td>100</td><td>Items ≈ 46/50; Fragments ≈ 34/47</td><td>(not in protocol)</td><td><span class=\"pill partial\">Fragments noisy</span></td></tr></tbody></table><p class=\"table-note\">Hand-checks were done by Claude, not a human. Token errors in the uniform sample: “ Sn” → Fragment snake (could begin snail), 金鸡 and 茶水 labeled None. Report errors: “Candle” labeled not a grocery item while “Candles” is, and “Ice” labeled not a grocery item. Outside the sample we also saw “Robin” labeled not an animal. Item errors in the extra sample: “ mew” → cat, “ Finn” → finn, “paste”, “ MG” → Madagascar. All sampled labels are in <code>judge_validation_samples.json</code>.</p></div><p><b>Amendments (2026-10-25, before the main analysis).</b> (1) <i>Determinism.</i> The OpenAI API is not bit-deterministic at temperature 0: 8/200 rerun labels changed, 7 of them Fragment↔None or a Fragment’s item, and one primary label (“ mew”: cat vs mew). Every analysis uses the single cached label per input, so results are reproducible from the frozen cache. (2) <i>Class words.</i> The judge sometimes labels the class words that its own prompt lists as None (bird, fish, insect, and translations such as 鸟, рыба) as Items. We enforce the prompt’s list on the judge’s canonical name (44 token strings affected; the readout block and K are unchanged). (3) <i>Synonym merging.</i> A single merge call over the full name list over-grouped (lion←tiger, lemon←lime, salmon←trout). We now have the judge propose groups and then confirm each (name, canonical) pair in a separate call; only confirmed pairs merge. The merge step uses low reasoning effort (temperature is not available with reasoning) and is run once and frozen. Preliminary merges: almonds→almond, beans→bean, pancakes→pancake, whisky→whiskey, weiner→wiener, bunny→rabbit, seagull→gull, serpent→snake, burma→myanmar.</p>",
@@ -2001,5 +2140,157 @@
   "perblock_note": "Condition 2. At each block the reference item and eligibility (K = 10) are recomputed from that block’s lens readout. Blocks 0–54.",
   "perblock_caption": "<b>Figure 4.</b> Agreement on all valid trials is highest at block 54 (28.1%); at the frozen readout block 54 it is 28.1%. Early blocks carry little category content, so agreement there is near zero.",
   "perblock_table": "<div class=\"table-wrap\"><table><thead><tr><th>Block</th><th>All valid</th><th>Eligible at that block</th></tr></thead><tbody><tr><td>0</td><td>1.0%</td><td>0.0% (0/7)</td></tr><tr><td>1</td><td>2.3%</td><td>—% (0/0)</td></tr><tr><td>2</td><td>0.6%</td><td>0.0% (0/10)</td></tr><tr><td>3</td><td>0.0%</td><td>0.0% (0/39)</td></tr><tr><td>4</td><td>0.8%</td><td>1.0% (1/102)</td></tr><tr><td>5</td><td>0.2%</td><td>0.0% (0/101)</td></tr><tr><td>6</td><td>0.2%</td><td>1.0% (1/101)</td></tr><tr><td>7</td><td>0.2%</td><td>0.0% (0/63)</td></tr><tr><td>8</td><td>0.0%</td><td>0.0% (0/56)</td></tr><tr><td>9</td><td>0.6%</td><td>0.0% (0/71)</td></tr><tr><td>10</td><td>0.2%</td><td>0.0% (0/39)</td></tr><tr><td>11</td><td>0.6%</td><td>0.7% (1/134)</td></tr><tr><td>12</td><td>0.2%</td><td>0.0% (0/52)</td></tr><tr><td>13</td><td>0.2%</td><td>1.0% (1/101)</td></tr><tr><td>14</td><td>0.6%</td><td>0.0% (0/45)</td></tr><tr><td>15</td><td>0.2%</td><td>0.0% (0/34)</td></tr><tr><td>16</td><td>1.0%</td><td>0.0% (0/59)</td></tr><tr><td>17</td><td>0.4%</td><td>0.0% (0/58)</td></tr><tr><td>18</td><td>0.0%</td><td>0.0% (0/72)</td></tr><tr><td>19</td><td>0.2%</td><td>0.0% (0/128)</td></tr><tr><td>20</td><td>0.2%</td><td>0.0% (0/132)</td></tr><tr><td>21</td><td>0.8%</td><td>0.0% (0/82)</td></tr><tr><td>22</td><td>1.7%</td><td>0.0% (0/111)</td></tr><tr><td>23</td><td>4.8%</td><td>5.5% (3/55)</td></tr><tr><td>24</td><td>3.1%</td><td>4.3% (3/70)</td></tr><tr><td>25</td><td>2.9%</td><td>4.1% (2/49)</td></tr><tr><td>26</td><td>3.8%</td><td>4.9% (3/61)</td></tr><tr><td>27</td><td>4.6%</td><td>3.3% (2/60)</td></tr><tr><td>28</td><td>4.4%</td><td>2.9% (2/70)</td></tr><tr><td>29</td><td>6.7%</td><td>2.4% (2/84)</td></tr><tr><td>30</td><td>5.0%</td><td>2.3% (3/132)</td></tr><tr><td>31</td><td>6.9%</td><td>3.6% (4/112)</td></tr><tr><td>32</td><td>7.9%</td><td>6.5% (13/201)</td></tr><tr><td>33</td><td>7.1%</td><td>7.0% (16/229)</td></tr><tr><td>34</td><td>9.8%</td><td>9.9% (26/263)</td></tr><tr><td>35</td><td>7.9%</td><td>9.9% (17/172)</td></tr><tr><td>36</td><td>7.1%</td><td>6.9% (18/262)</td></tr><tr><td>37</td><td>11.0%</td><td>16.8% (40/238)</td></tr><tr><td>38</td><td>12.1%</td><td>15.1% (40/265)</td></tr><tr><td>39</td><td>8.1%</td><td>7.9% (27/342)</td></tr><tr><td>40</td><td>15.0%</td><td>18.2% (58/318)</td></tr><tr><td>41</td><td>14.8%</td><td>19.1% (66/345)</td></tr><tr><td>42</td><td>15.0%</td><td>15.9% (65/409)</td></tr><tr><td>43</td><td>15.0%</td><td>18.6% (67/361)</td></tr><tr><td>44</td><td>16.0%</td><td>18.8% (70/373)</td></tr><tr><td>45</td><td>17.5%</td><td>21.6% (77/356)</td></tr><tr><td>46</td><td>15.2%</td><td>18.0% (69/383)</td></tr><tr><td>47</td><td>17.5%</td><td>20.2% (78/387)</td></tr><tr><td>48</td><td>17.5%</td><td>19.8% (76/383)</td></tr><tr><td>49</td><td>17.9%</td><td>19.1% (78/408)</td></tr><tr><td>50</td><td>18.5%</td><td>20.1% (78/388)</td></tr><tr><td>51</td><td>18.8%</td><td>20.3% (89/439)</td></tr><tr><td>52</td><td>23.5%</td><td>25.1% (112/447)</td></tr><tr><td>53</td><td>25.6%</td><td>26.7% (121/453)</td></tr><tr><td>54</td><td>28.1%</td><td>29.3% (133/454)</td></tr></tbody></table></div>"
+ },
+ "swap": {
+  "swap": {
+   "intro": "<p>For 120 eligible main situations (40 per category, drawn with a fixed seed), we re-ran the hold phase from the same prompt and edited the block-54 residual stream at every copied token. A is the lens reference item; B is a random category item from the judge-labeled pool that is <em>not</em> among the trial&#8217;s lens top-10 items and has a single-token form with A&#8217;s spacing and casing. With v<sub>X</sub> = W<sub>U</sub>[token X]·J<sub>54</sub> (unit-normalized), V = [v<sub>A</sub> v<sub>B</sub>], c = V<sup>+</sup>h, the swap is h &larr; h + α·V(σ(c) &minus; c), where σ exchanges the two coordinates (the J++ release&#8217;s swap convention). The control adds a fixed random unit direction orthogonal to span(V), scaled at each position to the norm of that position&#8217;s swap edit. After the copy ends, the model answers the condition-2 free-naming question and the answer-required recognition question (A, B and the two next lens items; two orders).</p><p>All 120 copies stay token-identical to the original copy in every condition, so the edit never disrupts the copy itself. The mean edit is 3.5% (α = 1) and 6.9% (α = 2) of the residual norm.</p>",
+   "answer": "<div class=\"answer\"><span class=\"answer-tag\">Step 8 result</span><ul><li><b>The swap never makes the model name B</b>: 0/120 in every condition.</li><li><b>The swap does remove A from the report</b>: A is named in 20.0% after the swap vs 32.5% after the norm-matched control (difference -12.5 pp [-18.3, -6.7]; 15 situations lose A under the swap only, 0 the other way; exact McNemar p &lt; 0.001). The report changes in 15.0% of situations after the swap vs 0.0% after the control.</li><li><b>Recognition does not move at all</b>: the letter chosen is identical in all 480 swap-vs-no-edit comparisons; A is picked in 50.8% and B in 2.5% of responses in every condition.</li><li><b>Why B is not injected</b>: before the edit, the hidden state&#8217;s coordinate on v<sub>A</sub> is small and usually negative (median -0.45; positive at 43% of positions), and on v<sub>B</sub> more negative (median -2.70; positive at 14%). Exchanging them mostly pushes A down to B&#8217;s level and lifts B only to A&#8217;s near-zero level, so the swap is mainly an A-suppression edit. Reports that change move to another common item (Apple &rarr; Watermelon or Milk; Japan &rarr; France), not to B.</li></ul></div>",
+   "cond_table": "<div class=\"table-wrap\"><p class=\"table-cap\"><b>Outcomes by condition</b> (all 120 situations).</p><table class=\"\"><thead><tr><th>Condition</th><th>Copy identical</th><th>Edit / ‖h‖</th><th>Names A</th><th>Names B</th><th>Changed vs no edit</th><th>Recog. picks A</th><th>Recog. picks B</th></tr></thead><tbody><tr><td>No edit</td><td>120/120</td><td>0.0%</td><td>32.5% (39/120)</td><td>0.0% (0/120)</td><td>—</td><td>50.8% (122/240)</td><td>2.5% (6/240)</td></tr><tr><td>Swap α = 1</td><td>120/120</td><td>3.5%</td><td>20.0% (24/120)</td><td>0.0% (0/120)</td><td>15.0%</td><td>50.8% (122/240)</td><td>2.5% (6/240)</td></tr><tr><td>Swap α = 2</td><td>120/120</td><td>6.9%</td><td>18.3% (22/120)</td><td>0.0% (0/120)</td><td>17.5%</td><td>50.8% (122/240)</td><td>2.5% (6/240)</td></tr><tr><td>Control α = 1</td><td>120/120</td><td>3.5%</td><td>32.5% (39/120)</td><td>0.0% (0/120)</td><td>0.0%</td><td>50.8% (122/240)</td><td>2.5% (6/240)</td></tr><tr><td>Control α = 2</td><td>120/120</td><td>6.9%</td><td>30.8% (37/120)</td><td>0.0% (0/120)</td><td>5.0%</td><td>50.8% (122/240)</td><td>2.5% (6/240)</td></tr></tbody></table><p class=\"table-note\">Free naming is condition 2 (&#8220;not mentioned&#8221;). Recognition: 2 orders per situation, answer required.</p></div>",
+   "comp_table": "<div class=\"table-wrap\"><p class=\"table-cap\"><b>Paired swap vs norm-matched control.</b> Bootstrap over situations (5,000 resamples); exact McNemar test for binary outcomes.</p><table class=\"\"><thead><tr><th>Strength</th><th>Outcome</th><th>Swap</th><th>Control</th><th>Swap &minus; control (pp) [95% CI]</th><th>Discordant (swap only / control only)</th><th>McNemar p</th></tr></thead><tbody><tr><td>α = 1</td><td>Report names B</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>α = 1</td><td>Report names A</td><td>20.0%</td><td>32.5%</td><td><b>-12.5</b> [-18.3, -6.7]</td><td>0 / 15</td><td>&lt;0.001</td></tr><tr><td>α = 1</td><td>Report differs from no-edit</td><td>15.0%</td><td>0.0%</td><td><b>+15.0</b> [+9.2, +21.7]</td><td>18 / 0</td><td>&lt;0.001</td></tr><tr><td>α = 1</td><td>Recognition picks B</td><td>2.5%</td><td>2.5%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>α = 1</td><td>Recognition picks A</td><td>50.8%</td><td>50.8%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>α = 2</td><td>Report names B</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>α = 2</td><td>Report names A</td><td>18.3%</td><td>30.8%</td><td><b>-12.5</b> [-18.3, -6.7]</td><td>0 / 15</td><td>&lt;0.001</td></tr><tr><td>α = 2</td><td>Report differs from no-edit</td><td>17.5%</td><td>5.0%</td><td><b>+12.5</b> [+5.8, +19.2]</td><td>16 / 1</td><td>&lt;0.001</td></tr><tr><td>α = 2</td><td>Recognition picks B</td><td>2.5%</td><td>2.5%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>α = 2</td><td>Recognition picks A</td><td>50.8%</td><td>50.8%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr></tbody></table></div>",
+   "coord_table": "<div class=\"table-wrap\"><p class=\"table-cap\"><b>Coordinates before the edit</b> (swap α = 1 run). c = V<sup>+</sup>h in units of the unit-normalized lens directions; the residual norm at block 54 is about 160.</p><table class=\"\"><thead><tr><th>Copied positions</th><th>Median c<sub>A</sub></th><th>c<sub>A</sub> &gt; 0</th><th>Median c<sub>B</sub></th><th>c<sub>B</sub> &gt; 0</th><th>c<sub>A</sub> &gt; c<sub>B</sub></th></tr></thead><tbody><tr><td>1,432</td><td>-0.45</td><td>43%</td><td>-2.70</td><td>14%</td><td>79%</td></tr></tbody></table></div>",
+   "examples": "<div class=\"table-wrap\"><p class=\"table-cap\"><b>Reports that changed under the swap</b> (first 12, α = 2; raw answers).</p><table class=\"text\"><thead><tr><th>Situation</th><th>A</th><th>B</th><th>No edit</th><th>Swap α = 2</th><th>Control α = 2</th></tr></thead><tbody><tr><td>m-grocery-158</td><td>apple</td><td>soy</td><td>Apple</td><td>Watermelon</td><td>Apple</td></tr><tr><td>m-grocery-146</td><td>apple</td><td>candle</td><td>Apple</td><td>Milk</td><td>Apple</td></tr><tr><td>m-grocery-123</td><td>apple</td><td>éclair</td><td>Banana</td><td>Milk</td><td>Milk</td></tr><tr><td>m-grocery-154</td><td>apple</td><td>salsa</td><td>Apple</td><td>Banana</td><td>Apple</td></tr><tr><td>m-animal-095</td><td>owl</td><td>brill</td><td>Bear</td><td>Elephant</td><td>Bear</td></tr><tr><td>m-animal-030</td><td>cat</td><td>pony</td><td>Cat</td><td>Owl</td><td>Cat</td></tr><tr><td>m-animal-023</td><td>rabbit</td><td>cougar</td><td>Penguin</td><td>Lion</td><td>Cat</td></tr><tr><td>m-animal-143</td><td>squirrel</td><td>turtle</td><td>Squirrel</td><td>Duck</td><td>Duck</td></tr><tr><td>m-country-157</td><td>japan</td><td>taiwan</td><td>Japan</td><td>France</td><td>Japan</td></tr><tr><td>m-country-080</td><td>japan</td><td>bangladesh</td><td>Japan</td><td>Switzerland</td><td>Japan</td></tr><tr><td>m-country-014</td><td>norway</td><td>mali</td><td>Norway</td><td>I cannot reveal the country I silently chose, as my instructions were to keep it</td><td>Norway</td></tr><tr><td>m-country-007</td><td>united kingdom</td><td>indonesia</td><td>The United Kingdom</td><td>The United States</td><td>The United Kingdom</td></tr></tbody></table></div>",
+   "disclosures": "<ul><li><b>Six sampled situations were replaced</b> because the reference item had no token in a cased script (no casing pattern to give B); the next situations in the seeded order were used instead.</li><li><b>B&#8217;s token copies A&#8217;s spacing and casing</b> (e.g. A = &#8220; UK&#8221; gives B = &#8220; INDONESIA&#8221;), so the swap exchanges like-formatted tokens. Some B forms are therefore unusual strings.</li><li><b>The no-edit condition is an addition</b> to protocol v2; it is the reference for &#8220;report changed&#8221;. Its reports reproduce the original condition-2 answers.</li><li><b>Mean cosine between v<sub>A</sub> and v<sub>B</sub></b> is 0.11 (range -0.06 to 0.39).</li><li>The edit is applied only during the hold phase (copied tokens); the report question and answer run unedited from the edited cache.</li></ul>",
+   "chart_note": "120 situations; 95% Wilson intervals. &#8220;Differs&#8221; compares the judged item with the no-edit report.",
+   "chart_caption": "<b>Figure 5.</b> The swap removes A from the report (20% vs 32% under the control at α = 1) but never puts B in."
+  },
+  "stab": {
+   "html": "<p><b>Question.</b> If the lens shows different items at different copied positions (say ostrich early, goose late), the averaged score still crowns one reference item, and a mismatch with the report could reflect an ambiguous readout rather than a failure to introspect. Here we check how stable the per-position readout is and whether the primary result depends on averaging.</p><p><b>Method.</b> At each copied position (block 54), the positional winner is the category item with the largest gain over the same-carrier no-instruction trial at the same position (both log-probs floored at rank 100). Copy lengths match the baselines in all 454 eligible trials.</p><div class=\"answer warn\"><span class=\"answer-tag\">Finding</span><ul><li><b>The readout is very unstable across positions.</b> Only 49% of copied positions have any category item in the lens top 100. The averaged reference is the positional winner at 12% of positions (27% of positions that show an item), never at a majority, and is the modal winner in only 44% of trials. A trial has 5.0 distinct winners on average, and the two halves of the copy have different modal winners in 93% of trials.</li><li><b>Agreement is higher when the readout is more stable:</b> 27%, 24% and 38% across stability terciles.</li><li><b>Counting any positional winner as a match does not add signal.</b> Matches rise from 29.3% to 39.0%, but the same criterion applied to other trials&#8217; winners rises from 7.5% to 16.1%, so the excess over chance barely changes (+21.8 vs +22.9 pp). The modal winner does worse than the averaged score.</li><li><b>61% of reports match no positional winner at all</b>, so position-to-position ambiguity cannot explain most mismatches.</li></ul></div>",
+   "tables": "<div class=\"table-wrap\"><p class=\"table-cap\"><b>Condition-2 agreement under three match criteria</b> (454 eligible trials).</p><table class=\"\"><thead><tr><th>Match criterion</th><th>Report matches</th><th>Same criterion, other trials (chance)</th><th>Excess (pp)</th></tr></thead><tbody><tr><td>Averaged reference (primary)</td><td>29.3%</td><td>7.5%</td><td>+21.8</td></tr><tr><td>Modal positional winner</td><td>16.1%</td><td>5.0%</td><td>+11.1</td></tr><tr><td>Winner at any copied position</td><td>39.0%</td><td>16.1%</td><td>+22.9</td></tr></tbody></table><p class=\"table-note\">Chance pairs each report with every other same-category trial&#8217;s winners.</p></div><div class=\"table-wrap\"><p class=\"table-cap\"><b>Least stable trials.</b></p><table class=\"text\"><thead><tr><th>Trial</th><th>Averaged reference</th><th>Positional winners in order (– = no item in top 100)</th><th>Report</th></tr></thead><tbody><tr><td>m-grocery-003</td><td>popcorn</td><td>tea · – · – · apple · – · – · cookie · – · – · – · apple</td><td>peanut</td></tr><tr><td>m-grocery-012</td><td>apple</td><td>tea · youtiao · – · – · crema · – · – · onion · corn · corn · watermelon</td><td>mint</td></tr><tr><td>m-grocery-014</td><td>apple</td><td>– · – · water · potato · – · kale · candy · – · – · – · – · corn · corn · watermelon</td><td>cranberry</td></tr><tr><td>m-grocery-032</td><td>champagne</td><td>– · – · toothpaste · cake · apple · toothpaste · – · – · – · – · corn · watermelon</td><td>cake</td></tr><tr><td>m-grocery-058</td><td>banana</td><td>– · bread · apple · blueberry · – · onion · bread · – · neem · corn · corn · apple</td><td>banana</td></tr></tbody></table></div>",
+   "note": "Eligible trials split into terciles of the share of copied positions where the averaged reference is the positional winner. 95% Wilson intervals.",
+   "caption": "<b>Figure 6.</b> Agreement rises in the most stable third (38%), but the least stable third still sits far above chance."
+  },
+  "coord": {
+   "n": 1432,
+   "cA_med": -0.4545498490333557,
+   "cB_med": -2.704392671585083,
+   "cA_pos": 42.877094972067034,
+   "cB_pos": 14.106145251396649,
+   "A_gt_B": 78.91061452513966
+  },
+  "charts": {
+   "swap": {
+    "groups": [
+     "No edit",
+     "Swap α = 1",
+     "Swap α = 2",
+     "Control α = 1",
+     "Control α = 2"
+    ],
+    "series": [
+     {
+      "name": "Report names A (retained)",
+      "color": "#235fa6",
+      "y": [
+       32.5,
+       20.0,
+       18.333333333333332,
+       32.5,
+       30.833333333333332
+      ],
+      "lo": [
+       24.775726408835432,
+       13.824380919983048,
+       12.430210244218538,
+       24.775726408835432,
+       23.27261218267573
+      ],
+      "hi": [
+       41.309983078122116,
+       28.03683534337273,
+       26.201073589323663,
+       41.309983078122116,
+       39.58316487446824
+      ]
+     },
+     {
+      "name": "Report names B (followed swap)",
+      "color": "#b0702a",
+      "y": [
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "lo": [
+       -3.469446951953614e-16,
+       -3.469446951953614e-16,
+       -3.469446951953614e-16,
+       -3.469446951953614e-16,
+       -3.469446951953614e-16
+      ],
+      "hi": [
+       3.1020271055929514,
+       3.1020271055929514,
+       3.1020271055929514,
+       3.1020271055929514,
+       3.1020271055929514
+      ]
+     },
+     {
+      "name": "Report differs from no-edit report",
+      "color": "#2f8a57",
+      "y": [
+       0.0,
+       15.0,
+       17.5,
+       0.0,
+       5.0
+      ],
+      "lo": [
+       -3.469446951953614e-16,
+       9.703734033668816,
+       11.740448670592563,
+       -3.469446951953614e-16,
+       2.3114049304474236
+      ],
+      "hi": [
+       3.1020271055929514,
+       22.46768494024625,
+       25.275868948042856,
+       3.1020271055929514,
+       10.480419464586234
+      ]
+     }
+    ],
+    "ymax": 50,
+    "ytitle": "Share of situations"
+   },
+   "stab": {
+    "groups": [
+     "Least stable third",
+     "Middle third",
+     "Most stable third"
+    ],
+    "series": [
+     {
+      "name": "Condition-2 agreement",
+      "color": "#235fa6",
+      "y": [
+       26.666666666666668,
+       23.703703703703702,
+       38.1294964028777
+      ],
+      "lo": [
+       20.743199825776976,
+       17.320120040135674,
+       30.477067539639453
+      ],
+      "hi": [
+       33.56529183225908,
+       31.542468694076554,
+       46.42041890688592
+      ],
+      "n": [
+       180,
+       135,
+       139
+      ]
+     }
+    ],
+    "ymax": 60,
+    "ytitle": "Matches lens reference"
+   }
+  }
  }
 }
