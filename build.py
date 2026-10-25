@@ -31,7 +31,10 @@ def figure(fid, title, legend, note, caption, data_table=None):
 def sections():
     S = []
     toc = []
+    cnt = [0]
     def h2(id_, num, text):
+        if num != '':
+            cnt[0] += 1; num = str(cnt[0])
         toc.append((id_, text)); S.append(f'<h2 id="{id_}"><span class="num">{num}</span>{text}</h2>')
 
     h2('status', '1', 'Status')
@@ -45,6 +48,10 @@ def sections():
         if hp.get('examples'):
             S.append(table(['Trial', 'Setting', 'Free naming (condition 2)'], hp['examples'], 'text',
                            cap='<b>Examples.</b> First two preliminary trials per category; raw model answers.'))
+
+    if R.get('judge_html'):
+        h2('judge', '0', 'LLM judge: validation (step 0)')
+        S.append(R['judge_html'])
 
     pr = R.get('prelim')
     if pr:

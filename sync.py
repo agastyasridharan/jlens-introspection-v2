@@ -26,6 +26,7 @@ R = dict(tag='Updating live', updated=now(), log=log,
          summary_tag=state.get('summary_tag', 'Summary so far'), summary=state.get('summary', []),
          status=state.get('status', []), appendix=state.get('appendix', []), charts={})
 
+R['judge_html'] = state.get('judge_html')
 hold = load('hold.json')
 if hold:
     R['hold'] = hold
