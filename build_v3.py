@@ -8,7 +8,7 @@ load = lambda n: json.load(open(os.path.join(RES, n))) if os.path.exists(os.path
 S, LOG, P, J = load('state.json'), load('log.json'), load('prelim.json'), load('judge_validation.json')
 CAT = {'instrument': 'Instruments', 'grocery': 'Groceries', 'animal': 'Animals', 'country': 'Countries'}
 COL = {'instrument': '#7a4fa3', 'grocery': '#b0702a', 'animal': '#2f8a57', 'country': '#235fa6'}
-NAV = [('./', 'Results (v2)'), ('protocol.html', 'Protocol v2'), ('v3.html', 'v3: Natural swap')]
+NAV = [('index.html', 'Results (v2)'), ('protocol.html', 'Protocol v2'), ('v3.html', 'v3: Natural swap')]
 
 
 def nav(cur):

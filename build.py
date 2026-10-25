@@ -133,7 +133,7 @@ page = f'''<!doctype html>
 {toc_html}
 <main>
 <header>
-  <nav class="tabs" aria-label="Pages"><a href="./" aria-current="page">Results (v2)</a><a href="protocol.html">Protocol v2</a><a href="v3.html">v3: Natural swap</a></nav>
+  <nav class="tabs" aria-label="Pages"><a href="index.html" aria-current="page">Results (v2)</a><a href="protocol.html">Protocol v2</a><a href="v3.html">v3: Natural swap</a></nav>
   <p class="crumbs"><b>J-lens introspection</b> · Protocol v2</p>
   <h1>Introspection v2: Results</h1>
   <p class="byline">Qwen3.6-27B · J++ lens · October 2026 <span class="tag">{R["tag"]}</span></p>

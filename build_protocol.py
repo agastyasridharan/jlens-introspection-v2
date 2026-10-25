@@ -5,7 +5,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SUBCSS_G = ('.subtabs{display:flex;gap:18px;font-family:var(--sans);font-size:14px;margin:-12px 0 20px}'
             '.subtabs a{color:var(--ink-2);text-decoration:none;padding:2px 0}.subtabs a[aria-current="page"]{color:var(--ink);font-weight:600;'
             'border-bottom:2px solid var(--accent)}.subtabs a:hover{color:var(--accent)}')
-NAV = [('./', 'Results (v2)'), ('protocol.html', 'Protocol v2'), ('v3.html', 'v3: Natural swap')]
+NAV = [('index.html', 'Results (v2)'), ('protocol.html', 'Protocol v2'), ('v3.html', 'v3: Natural swap')]
 
 
 def nav(cur):
