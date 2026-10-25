@@ -7,6 +7,9 @@ CSS = open(os.path.join(HERE, 'style.css')).read()
 load = lambda n: json.load(open(os.path.join(RES, n))) if os.path.exists(os.path.join(RES, n)) else None
 S, LOG, P, J, DV = load('state.json'), load('log.json'), load('prelim.json'), load('judge_validation.json'), load('dev.json')
 MN, RV = load('main.json'), load('report_validation.json')
+DOSE_NOTE = (load('dose_checks.json') or {}).get('note_html')
+DOSECAP = (load('dose_checks.json') or {}).get('caption', '')
+DOSE = {a: x for a, x in ((1, load('main_a1.json')), (2, load('main_a2.json')), (4, MN)) if x}
 MD = json.load(open(os.path.join(HERE, '..', 'v3', 'stimuli', 'main_design.json'))) if MN else None
 SETN = {'rb': 'block 53', 'band': 'blocks 48–53', 'site': 'assistant-start token', 'last5': 'last 5 prompt tokens'}
 CAT = {'instrument': 'Instruments', 'grocery': 'Groceries', 'animal': 'Animals', 'country': 'Countries'}
@@ -251,6 +254,38 @@ def sections():
         rows.sort(key=lambda x: x[0])
         out.append('<details class="app"><summary>Per-situation reports (free naming 1)</summary><div>' +
                    table(['Situation', 'X', 'B', 'C', 'No edit', 'Swap', 'Control', 'Late swap', 'Late control', 'Other instance'], rows, 'text') + '</div></details>')
+
+    if MN and len(DOSE) > 1:
+        h2('dose', 'Dose: α = 1, 2, 4 on the main set')
+        out.append('<p>Pre-specified secondary analysis, run after the primary analysis was locked: the whole swap stage repeated on the same 307 main situations at α = 1 and α = 2, '
+                   'with the same blocks (48–53), positions (last five prompt tokens), questions and measures. α = 4 is the frozen main run. '
+                   'The no-edit state, context prediction and the menus do not depend on α; the no-edit reports reproduced exactly in every rerun (see note).</p>')
+        rows = []
+        for al in sorted(DOSE):
+            g = DOSE[al]['groups']['all']; e = g['edit_shift']; v = g['validity']
+            cell = lambda k: f'{g[k]["swap"]} vs {g[k]["control"]} / {g[k]["n"]}<br><span class="muted">{100*g[k]["diff"]:+.1f} pp, p = {g[k]["p"]:.2g}</span>'
+            rows.append([f'α = {al}' + (' (main)' if al == 4 else ''), f'{100*v["swap"]["valid"]/v["swap"]["n"]:.0f}% / {100*v["control"]["valid"]/v["control"]["n"]:.0f}%',
+                         f'{e["mean"]:+.2f} [{e["lo"]:+.2f}, {e["hi"]:+.2f}]', f'{100*e["pos"]:.0f}%', f'{100*e["flip"]:.0f}%',
+                         cell('report_follow'), cell('second_choice'), cell('third_follow'), cell('late_follow')])
+        out.append(table(['Strength', 'Answer unchanged (swap / control)', 'Edit-shift (nats)', 'Shift > 0', 'C overtakes B', 'Report names C', 'Second choice names C', 'Edited third-person names C', 'Late edit names C'], rows, 'text',
+                         cap='<b>Both categories.</b> Counts: swap vs control over situations valid under both at that α (the late edit uses the same situations).'))
+        for c in ('instrument', 'country'):
+            rows = []
+            for al in sorted(DOSE):
+                g = DOSE[al]['groups'][c]; e = g['edit_shift']
+                rows.append([f'α = {al}', f'{e["mean"]:+.2f} [{e["lo"]:+.2f}, {e["hi"]:+.2f}]', f'{100*e["flip"]:.0f}%'] +
+                            [f'{g[k]["swap"]} vs {g[k]["control"]} / {g[k]["n"]}' for k in ('report_follow', 'B_retention', 'injection', 'late_follow')] +
+                            [f'{g["recognition"]["swap"]["C"]} vs {g["recognition"]["control"]["C"]} / {g["recognition"]["swap"]["n"]}'])
+            out.append(table(['Strength', 'Edit-shift', 'C overtakes B', 'Report names C', 'Report names B', 'Injection names C', 'Late edit names C', 'Recognition picks C'], rows, 'text', cap=f'<b>{CAT[c]}</b>'))
+        fig = dict(alphas=sorted(DOSE), early=[100 * DOSE[al]['groups']['all']['report_follow']['diff'] for al in sorted(DOSE)],
+                   late=[100 * DOSE[al]['groups']['all']['late_follow']['diff'] for al in sorted(DOSE)],
+                   shift=[DOSE[al]['groups']['all']['edit_shift']['mean'] for al in sorted(DOSE)])
+        out.append('<figure class="wide" id="fig-dose"><div class="fig-panel"><div class="fig-top"><div class="fig-title">Report-follow (swap − control) by edit strength</div>'
+                   '<div class="legend" aria-hidden="true"><span><i style="border-color:#235fa6;border-top-width:3px"></i>Prompt edit (before the answer)</span><span><i style="border-color:#b0702a;border-top-width:3px"></i>Late edit (question tokens)</span></div></div>'
+                   '<div id="chart-dose" class="chart" role="img" aria-label="Report-follow by alpha"></div><div class="fig-note">Both categories; percentage points.</div></div>'
+                   f'<figcaption><b>Figure 4.</b> {DOSECAP}</figcaption></figure>')
+        out.append('<script>window.DOSEFIG = ' + json.dumps(fig) + ';</script>')
+        if DOSE_NOTE: out.append(DOSE_NOTE)
     h2('log', 'Log')
     out.append('<ol class="log">' + ''.join(f'<li><time>{e["t"]}</time><div class="entry"><p>{e["text"]}</p></div></li>' for e in reversed(LOG)) + '</ol>')
     return '\n'.join(out), toc
@@ -322,7 +357,14 @@ function renderMain() {{
     barmode:"group", bargap:0.3, margin:{{l:50,r:10,t:14,b:60}}, xaxis:ax({{type:"category"}}),
     yaxis:ax({{showgrid:true, gridcolor:"#efe8dc", title:{{text:"Reports naming C (%)",font:{{size:12,color:"#8a7d6d"}}}}, rangemode:"tozero"}})}}, {{displayModeBar:false, responsive:true}});
 }}
-let t; window.addEventListener("resize", () => {{ clearTimeout(t); t = setTimeout(() => {{ render(); renderDev(); renderMain(); }}, 150); }}); render(); renderDev(); renderMain();
+function renderDose() {{
+  const el = document.getElementById("chart-dose"); const F = window.DOSEFIG; if (!el || !F) return;
+  const mk = (name, y, color) => ({{type:"scatter", mode:"lines+markers", name:name, x:F.alphas, y:y, line:{{color:color, width:2}}, marker:{{size:8, color:color}}, hovertemplate:"α = %{{x}}: %{{y:+.1f}} pp<extra>"+name+"</extra>"}});
+  Plotly.react(el, [mk("Prompt edit", F.early, "#235fa6"), mk("Late edit", F.late, "#b0702a")], {{font:{{family:FONT,size:12,color:"#5e5245"}}, paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)", showlegend:false, dragmode:false, height:300,
+    margin:{{l:50,r:10,t:14,b:44}}, xaxis:ax({{type:"log", tickvals:F.alphas, ticktext:F.alphas.map(a=>"α = "+a)}}),
+    yaxis:ax({{showgrid:true, gridcolor:"#efe8dc", title:{{text:"Report-follow (pp)",font:{{size:12,color:"#8a7d6d"}}}}, zeroline:true, zerolinecolor:"#cfc4b4"}})}}, {{displayModeBar:false, responsive:true}});
+}}
+let t; window.addEventListener("resize", () => {{ clearTimeout(t); t = setTimeout(() => {{ render(); renderDev(); renderMain(); renderDose(); }}, 150); }}); render(); renderDev(); renderMain(); renderDose();
 </script>
 </body>
 </html>
