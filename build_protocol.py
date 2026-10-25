@@ -38,5 +38,5 @@ def render(src, out, title, crumb, h1, tag, intro=''):
 render('protocol-v2.md', 'protocol.html', 'Introspection v2: Protocol', 'Protocol v2', 'Introspection v2: Procedures', 'Frozen design')
 render('protocol-v3.md', 'v3.html', 'Introspection v3: Natural Swap', 'Protocol v3', 'Introspection v3: Natural-recommendation swap',
        'Draft design · not run',
-       '<p class="thanks">A new experiment: no hold instruction, a natural recommendation request, and the lens-coordinate swap as the primary test. '
+       '<p class="thanks">A new experiment: no hold instruction. The model answers a natural recommendation request, then reports which <em>other</em> items were strongly represented. The primary test swaps two such competitors without changing the answer. '
        'Results will be reported on this tab once runs begin.</p>')

@@ -178,12 +178,12 @@ details.tv table { font-size: 13px; } details.tv th, details.tv td { padding: 4p
   <p class="crumbs"><b>J-lens introspection</b> · Protocol v3</p>
   <h1>Introspection v3: Natural-recommendation swap</h1>
   <p class="byline">Qwen3.6-27B · J++ lens · October 2026 <span class="tag">Draft design · not run</span></p>
-  <p class="thanks">A new experiment: no hold instruction, a natural recommendation request, and the lens-coordinate swap as the primary test. Results will be reported on this tab once runs begin.</p>
+  <p class="thanks">A new experiment: no hold instruction. The model answers a natural recommendation request, then reports which <em>other</em> items were strongly represented. The primary test swaps two such competitors without changing the answer. Results will be reported on this tab once runs begin.</p>
 </header>
 
 <p>Model: Qwen/Qwen3.6-27B (thinking disabled, greedy decoding)</p>
-<p>We want to answer: when we change what the lens shows in the model's processing of a request, without changing any visible text, does the model's report about that processing change with it?</p>
-<p>v3 has no instruction to think of, choose, or hold an item. The model reads an ordinary request for a recommendation. The causal swap is the primary test. The correlational agreement measures from v2 are kept as secondary outcomes.</p>
+<p>We want to answer this: the model answers a request with an item X. If we change which <strong>other</strong> items the lens shows as strongly represented just before it answers, and the visible text stays identical, does the model's report of those other items change with it?</p>
+<p>v3 does not tell the model to think of, choose, or hold an item. The model answers an ordinary request for a recommendation, and that answer stays in context. The report asks about the competitors: items represented alongside the one the model said. The primary test is a swap between two competitors that leaves the answer unchanged. The correlational agreement measures from v2 are kept as secondary outcomes.</p>
 <h2>What changed from v2</h2>
 <div class="table-wrap"><table class="text">
 <thead>
@@ -196,45 +196,67 @@ details.tv table { font-size: 13px; } details.tv th, details.tv td { padding: 4p
 <tbody>
 <tr>
 <td>The model is told to silently choose an item and keep it in mind while copying a sentence.</td>
-<td>The model reads a natural request (“What is one musical instrument I could use?”). There is no hold instruction.</td>
-<td>The hold instruction is itself an unusual task, and the lens readout during copying was noisy. In v2, two halves of the same copied sentence named the same item in only about 23% of trials. Natural requests are the setting in which earlier pilots (instrument-natural-v2) found several candidates at once in the lens.</td>
+<td>The model answers a natural request (“What is one musical instrument I could use?”). There is no hold instruction.</td>
+<td>The hold instruction is an unusual task, and the lens readout during copying was noisy: two halves of the same copied sentence named the same item in only about 23% of trials. Natural requests are where earlier pilots (instrument-natural-v2) found several candidates at once.</td>
 </tr>
 <tr>
 <td>Read every copied position and average.</td>
-<td>Read one position: the final prompt token, before any answer text.</td>
-<td>With one position nothing is averaged, so no lens winner has to be chosen among items that win at different positions.</td>
+<td>Read one position: the assistant-start token, just before the answer.</td>
+<td>With one position nothing is averaged, so no winner has to be chosen among items that lead at different positions.</td>
+</tr>
+<tr>
+<td>The report asks which item the model was holding.</td>
+<td>The answer stays in context. The report asks which <em>other</em> item was most strongly represented besides X.</td>
+<td>When the item is the one the model is about to say, a report can just work out the answer again. Runner-up items are much harder to infer from behavior.</td>
 </tr>
 <tr>
 <td>Primary outcome: does the report match the lens reference item?</td>
-<td>Primary outcome: does the report follow a swap from A to B, compared with a matched control?</td>
-<td>In the natural pilots, a model predicting “another instance” from the request text matched the lens as well as self-report did (free naming 48% vs 44%; recognition 72% vs 70%). Agreement alone cannot show access to internal state. Under the swap, the correct answer is set by the experimenter, and the visible text is identical across conditions.</td>
+<td>Primary outcome: does the report follow a swap between two competitors, B and C, compared with a matched control?</td>
+<td>In the natural pilots, predicting “another instance” from the request text matched the lens as well as self-report did (free naming 48% vs 44%; recognition 72% vs 70%). Under the swap, the experimenter sets the correct answer.</td>
 </tr>
 <tr>
 <td>B is a random item outside the trial's lens top 10.</td>
-<td>B is another item already in the trial's lens top K.</td>
-<td>In v2 step 8, B's pre-edit coordinate was strongly negative (median −2.7), so the swap only suppressed A (A retained 20% vs 32.5% under the control) and never installed B (0/120). An item that is already active should give a real exchange.</td>
+<td>B and C are both competitors already in the trial's lens top K.</td>
+<td>In v2 step 8, B's pre-edit coordinate was strongly negative (median −2.7). The swap only suppressed A (A retained 20% vs 32.5% under the control) and never installed B (0/120). Two items that are already active should actually exchange.</td>
+</tr>
+<tr>
+<td>Validity: the copied text is unchanged.</td>
+<td>Validity: the edited model gives exactly the same answer.</td>
+<td>The answer is in context during the report, so it must be the same in every condition.</td>
 </tr>
 <tr>
 <td>Edit fixed at the readout block, α = 1 or 2.</td>
-<td>Edit block, positions, and α chosen on development situations by whether the edit changes the model's natural answer.</td>
-<td>The swap must first be shown to change what the model uses, judged by behavior and never by reports.</td>
+<td>Edit setting chosen on development situations by how much it shifts the model's next-token odds of C over B, never by reports.</td>
+<td>The edit has to be shown to change what the model weighs before any report is interpreted.</td>
 </tr>
 <tr>
 <td>No controls for re-deriving the answer.</td>
-<td>Re-derivation question, late edit, and edited third-person prediction (step 9).</td>
-<td>These separate reading the earlier state from a general shift in the model's preference toward B.</td>
+<td>Second-choice question, late edit, and edited third-person prediction (step 9).</td>
+<td>These separate reading the earlier state from a general shift in preference toward C.</td>
 </tr>
 <tr>
 <td>Groceries, animals, countries.</td>
-<td>Musical instruments, plus any of groceries, animals, and countries that pass a screen.</td>
-<td>Instruments had the most candidates at the final prompt token in the natural pilots. Groceries and animals rarely had two or more on the fixed lists.</td>
+<td>Musical instruments, plus whichever of groceries, animals, and countries pass a screen.</td>
+<td>In the natural pilots, instruments had the most candidates at this position; groceries and animals rarely had two or more.</td>
+</tr>
+<tr>
+<td>Fixed stopping rules.</td>
+<td>A fallback ladder (step 4) is tried on preliminary data before stopping.</td>
+<td>If the readouts are too sparse, the setup is adjusted in a fixed order, not abandoned.</td>
 </tr>
 </tbody>
 </table></div>
 <h2>0. The LLM judge</h2>
-<p>As in v2: <code>gpt-5.4-mini-2026-03-17</code>, reasoning off, temperature 0, strict JSON, one input per call. It has the same three jobs: labeling lens tokens (Item, Fragment, None), labeling reports (canonical item, Abstention, Not a category item), and merging synonyms (propose groups, then verify each pair in its own call). Class words (“instrument”, “bird”, “fish”, …) are never Items. The judge never sees the lens readout, the request, or other labels.</p>
-<p>New categories are validated as in v2: we hand-check 200 token labels and 100 report labels, require at least 95% agreement, and report a rerun-identity check. Labels are cached once and frozen before the stage that uses them.</p>
-<p>The single-token limitation from v2 still applies: the lens can show only items whose names are a single token. We record single-token status for every report and every natural answer.</p>
+<p>As in v2, the judge is <code>gpt-5.4-mini-2026-03-17</code> with reasoning off, temperature 0, strict JSON, and one input per call. Class words (“instrument”, “bird”, “fish”, …) are never Items. The judge never sees the lens readout, the request, or other labels.</p>
+<p>It has four jobs:</p>
+<ol>
+<li><strong>Labeling lens tokens</strong> as Item, Fragment, or None, as in v2.</li>
+<li><strong>Labeling reports</strong> as a canonical item, Abstention, or Not a category item, as in v2.</li>
+<li><strong>Merging synonyms</strong> by proposing groups, then verifying each pair in its own call, as in v2.</li>
+<li><strong>Listing answer items (new).</strong> Given a natural answer and the category, the judge returns the canonical items it names, in order of first mention. The first is the <strong>answer item X</strong>. All of them are <strong>named items</strong>, which are never used as competitors.</li>
+</ol>
+<p>New categories and the new job are validated as in v2: hand-check 200 token labels, 100 report labels, and 50 answer-item lists, and require at least 95% agreement. A rerun-identity check is reported. Labels are cached once and frozen before the stage that uses them.</p>
+<p>The single-token limitation from v2 still applies: the lens can show only items whose names are a single token. We record single-token status for every report and answer item.</p>
 <h2>1. Requests</h2>
 <p>Each situation is a one-sentence scenario followed by a fixed category question:</p>
 <div class="table-wrap"><table class="text">
@@ -263,48 +285,89 @@ details.tv table { font-size: 13px; } details.tv th, details.tv td { padding: 4p
 </tr>
 </tbody>
 </table></div>
-<p>Examples: “I'm arranging music for a silent film screening.” “I'm packing food for a long train journey.” The instrument wording matches instrument-natural-v2.</p>
-<p>Scenarios are generated with <code>gpt-5.5</code> and screened as in v2. A scenario may not name any specific item, food, animal, instrument, country, city, nationality, or language. It must fit the category. Duplicates are removed. All requests are frozen before any generation.</p>
-<p><strong>Category baseline.</strong> For each category we also run the template with a neutral, setting-free scenario (“I'm planning an event.”). This gives the category prior at the readout position.</p>
+<p>Two example scenarios are “I'm arranging music for a silent film screening.” and “I'm packing food for a long train journey.” The instrument wording matches instrument-natural-v2.</p>
+<p>Scenarios are generated with <code>gpt-5.5</code> and screened as in v2. A scenario may not name any specific item, food, animal, instrument, country, city, nationality, or language. It must fit the category, and duplicates are removed. All requests are frozen before any generation.</p>
+<p><strong>Category baseline.</strong> For each category, we also run the template with a neutral scenario (“I'm planning an event.”). This gives the category prior at the readout position.</p>
 <h2>2. Natural generation and recording</h2>
-<p>We present the request with no assistant prefill. We generate greedily with thinking disabled and a 64-token cap. We save the generated answer and record the output of every block (0–54) at the <strong>final prompt token</strong>: the last token before the first generated token. We save the prompt cache.</p>
-<p>The judge maps the natural answer to its first named canonical item (the <strong>natural answer item</strong>), Abstention, or Not a category item.</p>
-<p><strong>Numerical checks</strong> (as in instrument-reporting-v1): a cached replay of the prompt must reproduce the saved readout-block activation exactly; a zero-strength edit must reproduce the unedited answer token for token; and every hook must be removed before a branch continues. A situation that fails any check is excluded and reported.</p>
+<p>We present the request with no assistant prefill and generate greedily, with thinking disabled and a 64-token cap. The judge lists the answer's items (step 0, job 4). A situation whose answer names no category item is recorded and excluded.</p>
+<p><strong>Readout position: the assistant-start token.</strong> With thinking disabled, Qwen's chat template ends the prompt with the opening of the assistant turn:</p>
+<pre><code>…in one sentence.&lt;|im_end|&gt;\n&lt;|im_start|&gt;assistant\n&lt;think&gt;\n\n&lt;/think&gt;\n\n | A cello …
+</code></pre>
+<p>The readout position is the final <code>\n\n</code> after <code>&lt;/think&gt;</code>. This is the last token before the first generated token. It sits inside the assistant turn, and the model has not yet written any answer text. This is the same position as v1's assistant-start readout and the target in instrument-reporting-v2.</p>
+<p>We record the output of every block (0–54) at this position and save the prompt cache.</p>
+<p><strong>Secondary readout (descriptive only).</strong> We also record block outputs at every generated token up to and including the first subtoken of X's name. These readouts are reported but never used for the reference, eligibility, or the edit.</p>
+<p><strong>Numerical checks</strong> (as in instrument-reporting-v1):</p>
+<ul>
+<li>A cached replay must reproduce the saved readout-block activation exactly.</li>
+<li>A zero-strength edit must reproduce the unedited answer token for token.</li>
+<li>Every hook must be removed before a branch continues.</li>
+</ul>
+<p>A situation that fails any check is excluded and reported.</p>
 <h2>3. Lens score</h2>
-<p>At each block we rank all vocabulary tokens by J++ score at the final prompt token, excluding tokens with no letter or digit. We take the top N = 100 and look up their judge labels. An item's score is the highest log-probability among its top-N tokens. If none of its tokens is in the top N, the item gets the rank-N log-probability (a floor).</p>
-<p>The <strong>corrected score</strong> subtracts the same item's score in the category baseline (step 1) at the same block. It removes items that are always high for the category, such as “piano”.</p>
-<h2>4. Preliminary situations: categories, readout block, and K</h2>
-<p>We run 24 preliminary situations per category (all four categories).</p>
-<p><strong>Readout block.</strong> For each block up to 54, we count the distinct judge-labeled Items in the top 100 at the final prompt token. We average within category and then across the categories that are kept, with equal weight. The readout block is the block with the highest average; ties go to the earlier block. We report the whole curve.</p>
-<p><strong>Category screen.</strong> A category is kept if at least half of its preliminary situations have two or more distinct Items in the top K at the readout block (K as chosen below). Musical instruments are run whatever the outcome; if they fail, we stop (step 11).</p>
-<p><strong>K.</strong> K is the smallest of 10, 20, 50 such that at least 12 of 24 preliminary instrument situations have two or more Items in the top K.</p>
-<p><strong>Reference and swap partner.</strong> For each situation, the <strong>reference item A</strong> is the Item with the highest corrected score at the readout block. The <strong>swap partner B</strong> is the highest-scoring other Item in the top K that is not the natural answer item. If no such B exists, the situation is ineligible for the swap. We record A's margin over B, and whether A equals the natural answer item, as covariates.</p>
-<p><strong>Stability covariate.</strong> We also compute the reference at blocks readout−1 and readout−2 and record whether it agrees. This is reported, not used for eligibility.</p>
+<p>At each block, we rank all vocabulary tokens by J++ score at the assistant-start token, excluding tokens with no letter or digit. We take the top N = 100 and look up their judge labels.</p>
+<p>An item's score is the highest log-probability among its tokens in the top N. If none of its tokens is in the top N, the item gets the rank-N log-probability (a floor). The <strong>corrected score</strong> subtracts the same item's score in the category baseline (step 1) at the same block.</p>
+<h2>4. Preliminary situations: readout block, K, categories, and the fallback ladder</h2>
+<p>We run 24 preliminary situations per category, across all four categories.</p>
+<p><strong>Readout block.</strong> For each block up to 54, we count the distinct judge-labeled Items in the top 100 at the assistant-start token. We average within each category, then across categories with equal weight. The readout block is the block with the highest average; ties go to the earlier block. We report the whole curve.</p>
+<p><strong>Competitors.</strong> A situation's competitors are the Items in its top K at the readout block, excluding every named item. <strong>B</strong> is the competitor with the highest corrected score, and <strong>C</strong> is the second-highest. A situation is <strong>eligible</strong> if it has at least two competitors.</p>
+<p><strong>K.</strong> K is the smallest of 10, 20, or 50 at which at least 12 of the 24 preliminary instrument situations are eligible.</p>
+<p><strong>Category screen.</strong> A category is kept if at least half of its preliminary situations are eligible at that K. Instruments are always kept.</p>
+<p><strong>Fallback ladder.</strong> If instruments miss the 12-of-24 criterion at every K, we try the following steps in order on the preliminary data only, before any report is collected. We stop at the first step that meets the criterion. Each step taken is recorded as a dated amendment.</p>
+<ol>
+<li>Widen K to 100.</li>
+<li>Score items by their mean corrected score over the three blocks ending at the readout block, rather than at the readout block alone.</li>
+<li>Add the token just before X's name as a second readout position, using whichever of the two positions has more competitors.</li>
+<li>Write 24 new preliminary instrument requests with a different template wording (“Which musical instruments could work for…? Pick one.”), and repeat from the readout-block step.</li>
+</ol>
+<p>If instruments still fail after step 4, we stop. A non-instrument category that fails its screen is dropped. It may be replaced once with a new category that passes the same screen.</p>
+<p><strong>Covariates.</strong> For each situation we record:</p>
+<ul>
+<li>B's corrected-score margin over C.</li>
+<li>X's rank in the lens (or absent).</li>
+<li>Whether B is still the top competitor at blocks readout−1 and readout−2 (stability).</li>
+</ul>
+<p>None of these is used for eligibility.</p>
 <h2>5. Edit and matched control</h2>
-<p><strong>Lens vectors.</strong> For a token t at block l: v_t = W_U[t] · J_l, normalized to unit length. For A and B we use each item's highest-ranked token in that situation's top K at the readout block. Both tokens therefore actually occur in the readout, and no casing or spacing matching is needed.</p>
-<p><strong>Swap.</strong> With V = [v_A v_B] and c = V⁺h, we set h ← h + α·V(σ(c) − c), where σ exchanges the two coordinates. This is the J++ release's swap convention, as in v2 step 8.</p>
-<p><strong>Injection (secondary).</strong> We set B's coordinate to A's pre-edit coordinate and leave A unchanged: h ← h + α·(c_A − c_B)·v_B. Because V⁺v_B is the unit vector for B, this changes only B's coordinate. This applies only where c_A &gt; c_B; elsewhere it is a no-op, which we record.</p>
-<p><strong>Control.</strong> A fixed random unit direction, orthogonal to span(V), seeded per situation and scaled at each edited position to the norm of the swap edit at that position.</p>
-<p><strong>Edit site.</strong> The edit is applied during the prompt forward pass at the positions and blocks set in step 6, with v computed separately for each edited block. The resulting cache is the <strong>edited state</strong>. Every later branch (natural answer, reports, controls) continues from it with no further edit unless stated.</p>
-<p>We log c_A and c_B before and after every edit, the edit norm, and the residual norm, as in v2.</p>
+<p><strong>Lens vectors.</strong> For a token t at block l, v_t = W_U[t] · J_l, normalized to unit length. For B and C, we use each item's highest-ranked token in that situation's top K at the readout block.</p>
+<p><strong>Swap.</strong> With V = [v_B v_C] and c = V⁺h, we set h ← h + α·V(σ(c) − c), where σ exchanges the two coordinates. This is the J++ release's swap convention, as in v2 step 8.</p>
+<p><strong>Injection (secondary).</strong> If c_B &gt; c_C, we set C's coordinate to B's pre-edit value and leave B unchanged: h ← h + α·(c_B − c_C)·v_C. Because V⁺v_C is the unit vector for C, only C's coordinate changes. Where c_C ≥ c_B, injection is a no-op, and we record it.</p>
+<p><strong>Control.</strong> A fixed random unit direction orthogonal to span(V), seeded per situation. At each edited position, it is scaled to the norm of the swap edit at that position.</p>
+<p><strong>Edit site.</strong> The edit is applied during the prompt forward pass, at the positions and blocks fixed in step 6. v is computed separately for each edited block. Answer tokens are never edited.</p>
+<p><strong>Edited state and validity.</strong> From the edited prompt cache, the model regenerates its answer greedily. The situation is valid under that condition only if the answer is token-identical to the original. The edited state is then the edited prompt cache plus that identical answer. Every report branch continues from it with no further edit unless stated. We report invalid rates per condition.</p>
+<p>We log c_B and c_C before and after every edit, the edit norm, and the residual norm, as in v2.</p>
 <h2>6. Development: manipulation check and edit settings</h2>
 <p>We use 30 eligible instrument situations, separate from the main set, plus 15 per other kept category.</p>
-<p>For each setting in the grid, we run swap and control, then let the model answer the original request from the edited state (the <strong>edited natural answer</strong>). The grid:</p>
-<ul>
-<li>Blocks: the readout block only; or the six blocks ending at it.</li>
-<li>Positions: the final prompt token only; or the last five prompt tokens.</li>
-<li>α: 1, 2, 4.</li>
-</ul>
-<p><strong>Manipulation check.</strong> For each setting: <strong>answer-follow</strong> = the share of situations whose edited natural answer item is B under the swap, minus the same share under the control. We also record the share whose answer changes at all and the share whose answer is still a category item.</p>
-<p>We choose the setting with the largest answer-follow among those where at least 90% of swap answers are still category items (so the edit does not just break the answer). Ties go to the smaller α, then fewer blocks, then fewer positions. <strong>Reports are never collected on development situations.</strong> The chosen setting is frozen before the main stage.</p>
-<p>Proceeding requires answer-follow of at least 30 percentage points, with the bootstrap lower 95% bound above 0, for instruments at the chosen setting (step 11). A category whose answer-follow at that setting is below 15 points is dropped from the swap analysis; its correlational results are still reported.</p>
-<h2>7. Main situations</h2>
-<p>We write 160 new scenarios per kept category, frozen before generation. For each one we run step 2, apply step 4 (A, B, eligibility) with the frozen readout block and K, and record the covariates. All eligible situations enter the swap stage. There is no subsampling.</p>
-<h2>8. Reports</h2>
-<p>Every question is asked in a <strong>separate branch</strong> from the relevant state. The assistant turn is closed while still empty: the original natural answer is never in context. Then the question is appended as a new user turn, followed by the assistant header. Up to 16 generated tokens.</p>
-<p><strong>Self-report question</strong> (wording from instrument-reporting-v2):</p>
+<p><strong>Manipulation check.</strong> We take the edited prompt cache and teacher-force the original answer (feed it in token for token, regardless of what the edited model would generate). At the position just before X's name, we measure</p>
 <div class="answer"><span class="answer-tag">Prompt</span>
-<p>At the point just after you had read my original request, before producing any answer text, which {category phrase} was most strongly represented in your processing?</p>
+<p>Δ = log p(C) − log p(B),</p>
+</div>
+<p>where log p(item) is the highest next-token log-probability among the item's judge-labeled single-token forms. This asks whether the edit shifts the model's odds between the two competitors at the moment it names its answer, even though it still names X.</p>
+<p><strong>Edit-shift</strong> is the paired difference:</p>
+<div class="answer"><span class="answer-tag">Prompt</span>
+<p>(Δ_swap − Δ_no edit) − (Δ_control − Δ_no edit)</p>
+</div>
+<p>We also record the <strong>flip rate</strong>: the share of situations where C outranks B at that position under the swap but not under no edit.</p>
+<p><strong>Grid.</strong></p>
+<ul>
+<li>Blocks: the readout block only, or the six blocks ending at it.</li>
+<li>Positions: the assistant-start token only, or the last five prompt tokens.</li>
+<li>α: 1, 2, or 4.</li>
+</ul>
+<p><strong>Choosing the setting.</strong> Among settings where at least 80% of swap situations stay valid (answer unchanged), we choose the one with the largest median edit-shift. Ties go to the smaller α, then to fewer blocks, then to fewer positions. <strong>Reports are never collected on development situations.</strong> The chosen setting is frozen before the main stage.</p>
+<p>To proceed, the instrument edit-shift at the chosen setting must be positive in at least 75% of situations, and its bootstrap lower 95% bound must be above 0 (step 11). A category that misses this at the chosen setting is dropped from the swap analysis. Its correlational results are still reported.</p>
+<h2>7. Main situations</h2>
+<p>We write 160 new scenarios per kept category and freeze them before generation. For each one we:</p>
+<ul>
+<li>run step 2;</li>
+<li>apply step 4 with the frozen readout block and K (named items, competitors, B, C, eligibility);</li>
+<li>record the covariates.</li>
+</ul>
+<p>All eligible situations enter the swap stage. There is no subsampling.</p>
+<h2>8. Reports</h2>
+<p>Every question is asked in a <strong>separate branch</strong> from the relevant state. The branch contains the request, the model's complete answer, the end-of-turn token, the question as a new user turn, and the assistant header. We allow up to 16 generated tokens. In questions, X is written as it appears in the answer.</p>
+<p><strong>Competitor question (primary):</strong></p>
+<div class="answer"><span class="answer-tag">Prompt</span>
+<p>Besides {X}, which other {category phrase} was most strongly represented in your processing just before you answered?</p>
 </div>
 <p><strong>Free naming</strong> appends one of:</p>
 <div class="table-wrap"><table class="text">
@@ -325,52 +388,55 @@ details.tv table { font-size: 13px; } details.tv th, details.tv td { padding: 4p
 </tr>
 <tr>
 <td>3. Answer required</td>
-<td>You must name one {category phrase}, even if uncertain. Reply with only its name.</td>
+<td>You must name one {category phrase} other than {X}, even if uncertain. Reply with only its name.</td>
 </tr>
 </tbody>
 </table></div>
-<p><strong>Recognition</strong> appends “Choose among the following four options.”, then one of the two v2 instructions (answer required; U allowed), then the menu. Options: A, B, and the two next-highest Items in the top K by corrected score (filled at random from the category's Items if needed, with the fill count recorded). The order is shuffled, then rotated once for a second order. A's and B's letter positions are balanced across situations.</p>
-<p><strong>Context prediction</strong> (no-edit only, for the correlational outcomes): a fresh conversation quoting the request, as in instrument-reporting-v2:</p>
+<p>A report naming X or any other named item is scored as <strong>named-item</strong> and reported separately. It counts as a non-follow.</p>
+<p><strong>Recognition</strong> appends “Choose among the following four options.”, then one of the two v2 instructions (answer required; U allowed), then the menu. The options are B, C, and the next two competitors by corrected score, never a named item. If there are too few competitors, the menu is filled at random from the category's Items, and the fill count is recorded. The order is shuffled, then rotated once to give a second order. B's and C's letter positions are balanced across situations.</p>
+<p><strong>Anchor question (secondary):</strong> “Which {category phrase} was most strongly represented in your processing just before you answered? Reply with only its name.” We expect this to mostly return X. It is reported to show how the model treats its own answer.</p>
+<p><strong>Context prediction</strong> (no-edit only, for the correlational outcomes), in a fresh conversation:</p>
 <div class="answer"><span class="answer-tag">Prompt</span>
-<p>Another instance of this model received the following user request: <request>{request}</request> Predict which {category phrase} was most strongly represented in that instance's processing just after reading the request, before producing any answer text.</p>
+<p>Another instance of this model received the following user request: <request>{request}</request> It answered: <answer>{answer}</answer> Besides {X}, predict which other {category phrase} was most strongly represented in that instance's processing just before it answered.</p>
 </div>
-<p>followed by the same endings and menus.</p>
+<p>This is followed by the same endings and menus.</p>
 <h2>9. Swap stage</h2>
-<p>For every eligible main situation, at the frozen edit setting, we build the edited state under: <strong>no edit</strong>, <strong>swap</strong>, <strong>control</strong>, and <strong>injection</strong> (secondary). From each state we run:</p>
+<p>For every eligible main situation, at the frozen edit setting, we build the edited state (step 5) under four conditions: <strong>no edit</strong>, <strong>swap</strong>, <strong>control</strong>, and <strong>injection</strong> (secondary). From each valid state, we run:</p>
 <ol>
-<li><strong>Edited natural answer</strong> (manipulation check, repeated on the main set).</li>
-<li><strong>Self-report:</strong> free naming condition 1, plus recognition (answer required) in both orders.</li>
-<li><strong>Re-derivation question:</strong> “Which {category phrase} would you recommend for my original request? Reply with only its name.” This asks the model to answer again rather than report on its processing. If the swap makes reports name B only because the model now prefers B, this question should follow B at least as often.</li>
+<li><strong>The manipulation check</strong> (step 6), repeated on the main set.</li>
+<li><strong>The self-report</strong>: competitor question, free naming condition 1, and recognition (answer required) in both orders.</li>
+<li><strong>The second-choice question:</strong> “If you could not recommend {X}, which {category phrase} would you recommend instead? Reply with only its name.” This asks for a preference, not a report on processing. If reports name C under the swap only because the edit made the model like C more, this question should follow C at least as often.</li>
 </ol>
-<p>Two further conditions, swap and control only:</p>
+<p>Two further conditions are run with swap and control only:</p>
 <ol start="4">
-<li><strong>Late edit.</strong> No edit at the prompt. The same V and α are applied at every token of the appended self-report question, at the same blocks. A report about the earlier state should follow the early (prompt) edit more than the late edit. A general bias toward B should show the reverse, because the late edit sits closer to the output.</li>
-<li><strong>Edited third-person prediction.</strong> The context-prediction conversation with the same edit setting applied at the corresponding final tokens of the quoted request. If this prediction follows B as often as self-report, the effect is not specific to the model's own processing.</li>
+<li><strong>Late edit.</strong> No edit is applied to the prompt. The same V and α are applied at every token of the appended competitor question, at the same blocks. A report about the earlier state should follow the early (prompt) edit more than the late edit. A general bias toward C would show the reverse, because the late edit sits closer to the output.</li>
+<li><strong>Edited third-person prediction.</strong> The context-prediction conversation, with the same edit setting applied at the corresponding final tokens of the quoted request. If this prediction follows C as often as self-report does, the effect is not specific to the model's own processing.</li>
 </ol>
 <h2>10. Measures</h2>
-<p><strong>Primary outcome</strong> (eligible main situations in kept categories, free naming condition 1):</p>
-<p><strong>Report-follow:</strong> the share of self-reports naming B under the swap minus under the control. It is paired by situation, with a bootstrap 95% CI (resampling situations) and an exact McNemar test.</p>
+<p><strong>Primary outcome</strong> (on eligible, valid main situations in kept categories; competitor question, free naming condition 1):</p>
+<p><strong>Report-follow</strong> is the share of self-reports naming C under the swap, minus the share under the control. It is paired by situation, with a bootstrap 95% CI (resampling situations) and an exact McNemar test.</p>
 <p><strong>Pre-specified secondary outcomes:</strong></p>
 <ul>
-<li><strong>Answer-follow</strong> on the main set (manipulation check, step 6 definition).</li>
-<li><strong>A-retention:</strong> self-reports naming A, swap vs control (the v2 step-8 measure).</li>
-<li><strong>Report-follow conditional on answer-follow:</strong> among situations whose edited natural answer moved to B, the share whose self-report also names B.</li>
-<li><strong>Recognition:</strong> the share choosing B, and the share choosing A, swap vs control.</li>
-<li><strong>Re-derivation contrast:</strong> report-follow minus re-derivation-follow (paired).</li>
-<li><strong>Timing contrast:</strong> report-follow under the early edit minus under the late edit (each against its own control).</li>
+<li><strong>Edit-shift and flip rate</strong> on the main set (the manipulation check).</li>
+<li><strong>B-retention:</strong> the share of self-reports naming B, swap vs control.</li>
+<li><strong>Report-follow among flipped situations:</strong> the share whose report names C, among situations where C outranks B under the swap.</li>
+<li><strong>Recognition:</strong> the share choosing C and the share choosing B, swap vs control.</li>
+<li><strong>Second-choice contrast:</strong> report-follow minus second-choice-follow, paired.</li>
+<li><strong>Timing contrast:</strong> report-follow under the early edit minus report-follow under the late edit, each measured against its own control.</li>
 <li><strong>Self vs other:</strong> report-follow minus edited third-person-follow.</li>
 <li><strong>Injection:</strong> report-follow under injection vs control.</li>
-<li><strong>Dose:</strong> answer-follow and report-follow at the other α values in the grid, run on the main set after the primary analysis is locked.</li>
+<li><strong>Validity:</strong> the share of situations whose answer changed under each condition.</li>
+<li><strong>Dose:</strong> edit-shift and report-follow at the other α values in the grid. These are run on the main set after the primary analysis is locked.</li>
 </ul>
-<p><strong>Correlational outcomes</strong> (no-edit state, as in v2 and instrument-reporting-v2):</p>
+<p><strong>Correlational outcomes</strong> (no-edit state):</p>
 <ul>
-<li>Free-naming agreement with A (all three conditions), self vs context prediction.</li>
-<li>β_L from the conditional logit over corrected scores, self vs context prediction.</li>
-<li>Recognition agreement and mean rank of the chosen option, self vs context prediction.</li>
-<li>Agreement between the natural answer item and A, as an anchor.</li>
+<li>Free-naming agreement with B (all three conditions), self vs context prediction.</li>
+<li>β_L from a conditional logit over each situation's competitors (corrected scores, standardized within category), self vs context prediction.</li>
+<li>Recognition agreement and mean lens rank of the chosen option, self vs context prediction.</li>
+<li>Anchor question: the share returning X.</li>
 </ul>
 <p>The <strong>self advantage</strong> is self-report minus context prediction on each measure.</p>
-<p>All outcomes are reported per category and pooled. Abstentions, non-category answers, and truncations count as non-follows, and their rates are reported. Results are also split by single-token status and by the stability covariate.</p>
+<p>All outcomes are reported per category and pooled. Abstentions, named-item reports, non-category answers, and truncations count as non-follows, and their rates are reported. Results are also split by single-token status and by the stability covariate.</p>
 <p><strong>Interpretation, fixed in advance:</strong></p>
 <div class="table-wrap"><table class="text">
 <thead>
@@ -381,30 +447,30 @@ details.tv table { font-size: 13px; } details.tv th, details.tv td { padding: 4p
 </thead>
 <tbody>
 <tr>
-<td>Answer-follow fails</td>
-<td>The edit does not change what the model uses. No conclusion about reports.</td>
+<td>Edit-shift fails</td>
+<td>The edit does not change what the model weighs. No conclusion about reports.</td>
 </tr>
 <tr>
-<td>Answer follows; report does not</td>
-<td>The report does not read this state; it is driven by the visible text or by something else.</td>
+<td>Edit-shift holds; report does not follow</td>
+<td>The report does not read this state. It is driven by the visible text or by something else.</td>
 </tr>
 <tr>
-<td>Report follows, but no more than re-derivation, and the late edit ≥ the early edit</td>
-<td>A general shift in preference toward B. Not evidence that the report reads the earlier state.</td>
+<td>Report follows, but no more than the second-choice question, and the late edit ≥ the early edit</td>
+<td>A general shift in preference toward C. Not evidence that the report reads the earlier state.</td>
 </tr>
 <tr>
-<td>Report follows more than re-derivation, or the early edit &gt; the late edit, or self &gt; edited third-person</td>
-<td>Evidence that the report reads the edited earlier state. The strength of the claim depends on how many of these contrasts hold.</td>
+<td>Report follows more than the second-choice question, or the early edit &gt; the late edit, or self &gt; edited third-person</td>
+<td>Evidence that the report reads the edited earlier state. The more of these contrasts hold, the stronger the claim.</td>
 </tr>
 </tbody>
 </table></div>
 <h2>11. Stopping rules and reporting</h2>
 <ul>
 <li>If the judge fails validation twice for a category, that category is dropped. If instruments fail, we stop.</li>
-<li>If fewer than 12 of 24 preliminary instrument situations have two or more Items in the top K for every K, we stop and reconsider.</li>
-<li>If instrument answer-follow on development is below 30 points, or its lower bound is not above 0, at every grid setting, we stop before collecting any reports. We report the development results and do not widen the grid after seeing them.</li>
+<li>If instruments are not eligible in at least 12 of 24 preliminary situations after the whole fallback ladder (step 4), we stop.</li>
+<li>If, at every grid setting, fewer than 80% of instrument swap situations keep their answer, or the edit-shift criterion is not met, we stop before collecting any reports. We report the development results and do not widen the grid after seeing them.</li>
 <li>If more than 10% of situations fail the numerical checks, we stop and debug before continuing.</li>
-<li>The judge, prompts and label cache, requests, category baseline, readout block, K, kept categories, edit setting, and analysis code are frozen before the stage that uses them. Any later change is recorded as a dated amendment.</li>
+<li>The following are frozen before the stage that uses them: the judge, its prompts and label cache, the requests, the category baseline, the readout block, K, the ladder step reached, the kept categories, the edit setting, and the analysis code. Any later change is recorded as a dated amendment.</li>
 </ul>
 
 </main></div></body></html>
