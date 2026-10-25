@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Introspection v2: Protocol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #fbf8f3; --panel: #fffdf9; --ink: #2a2318; --ink-2: #5e5245; --ink-3: #8a7d6d;
+  --rule: #e6ddd0; --rule-2: #cfc4b4;
+  --accent: #235fa6; --mid: #2f8a57; --acn: #7a7268; --cat-a: #b0702a; --soft: #eef3f9; --warm: #fbf1e4;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: "Source Sans 3", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --toc-w: 250px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 16px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--serif);
+  font-size: 17.5px; line-height: 1.6; font-optical-sizing: auto; }
+.page { padding-left: 0; }
+main { display: grid; grid-template-columns: 1fr min(700px, calc(100% - 32px)) 1fr; padding: 48px 0 72px; }
+main > * { grid-column: 2; min-width: 0; }
+main > .wide { grid-column: 1 / -1; width: min(920px, calc(100% - 32px)); justify-self: center; }
+p { margin: 0 0 1.05em; }
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+h1 { font-size: 2.0rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.015em; margin: 0 0 14px; }
+h2 { font-size: 1.36rem; line-height: 1.3; font-weight: 600; margin: 2.6em 0 0.7em; letter-spacing: -0.01em; }
+h2 .num { color: var(--ink-3); font-weight: 400; margin-right: 0.35em; }
+h3 { font-size: 1.08rem; font-weight: 600; margin: 1.9em 0 0.5em; }
+ul, ol { padding-left: 1.3em; margin: 0 0 1.05em; } li { margin-bottom: 0.35em; }
+header { padding-bottom: 22px; border-bottom: 1px solid var(--rule); margin-bottom: 8px; }
+.crumbs { font-family: var(--sans); font-size: 14px; color: var(--ink-3); margin: 0 0 18px; }
+.crumbs b { color: var(--ink-2); font-weight: 600; }
+.byline { font-family: var(--sans); font-size: 15px; color: var(--ink-2); margin: 0 0 6px; }
+.byline .tag { display: inline-block; border: 1px solid #c9a227; color: #7a6212; background: #fbf3d6; border-radius: 3px;
+  padding: 0 6px; font-size: 12.5px; letter-spacing: 0.04em; text-transform: uppercase; margin-left: 4px; }
+.thanks { font-family: var(--sans); font-size: 14px; color: var(--ink-2); margin: 0; }
+code { font-size: 0.86em; background: #f1ebe1; padding: 1px 4px; border-radius: 3px; }
+
+/* table of contents */
+.toc { font-family: var(--sans); font-size: 14px; line-height: 1.35; }
+.toc-head { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); margin-bottom: 10px; }
+.toc ul { list-style: none; padding: 0; margin: 0; }
+.toc > ul > li { margin: 0 0 10px; }
+.toc > ul > li > a { font-weight: 600; color: var(--ink); }
+.toc ul ul { margin: 4px 0 0 0; padding-left: 10px; border-left: 1px solid var(--rule); }
+.toc ul ul li { margin: 3px 0; }
+.toc a { color: var(--ink-2); text-decoration: none; display: block; padding: 1px 0; }
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); }
+@media (min-width: 1180px) {
+  .page { padding-left: calc(var(--toc-w) + 24px); }
+  .toc { position: fixed; top: 0; left: 0; width: var(--toc-w); height: 100vh; overflow-y: auto;
+    padding: 48px 18px 32px 28px; border-right: 1px solid var(--rule); background: var(--bg); }
+  .toc-mobile { display: none; }
+}
+@media (max-width: 1179px) {
+  .page > .toc { display: none; }
+  .toc-mobile { margin: 18px 0 0; border: 1px solid var(--rule); border-radius: 6px; background: var(--panel); padding: 8px 14px; }
+  .toc-mobile > summary { font-family: var(--sans); font-weight: 600; font-size: 15px; cursor: pointer; }
+  .toc-mobile .toc { padding: 8px 0 4px; } .toc-mobile .toc-head { display: none; }
+}
+
+/* callouts */
+.answer { background: var(--soft); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 12px 18px 2px;
+  margin: 0.4em 0 1.6em; }
+.answer p { margin-bottom: 0.7em; }
+.answer ul { margin-bottom: 0.8em; }
+.answer-tag { display: block; font-family: var(--sans); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--accent); font-weight: 600; margin-bottom: 4px; }
+.answer.warn { background: var(--warm); border-left-color: var(--cat-a); }
+.answer.warn .answer-tag { color: var(--cat-a); }
+
+/* footnotes: hover (or tap) to read */
+.fn { position: relative; }
+.fn-ref { font-family: var(--sans); font-size: 0.68em; vertical-align: super; line-height: 0; text-decoration: none;
+  color: var(--accent); padding: 0 2px; margin-left: 1px; font-weight: 600; cursor: pointer; }
+.fn-ref::before { content: "["; } .fn-ref::after { content: "]"; }
+.fn-pop { display: none; position: absolute; z-index: 30; left: 0; top: 1.5em; width: 360px; max-width: calc(100vw - 32px);
+  background: #fffdf9; border: 1px solid var(--rule-2); border-radius: 6px; box-shadow: 0 6px 24px rgba(42,35,24,0.14);
+  padding: 10px 13px; font-family: var(--sans); font-size: 14px; line-height: 1.45; color: var(--ink); font-weight: 400;
+  font-style: normal; text-align: left; }
+.fn-n { font-weight: 600; color: var(--accent); margin-right: 2px; }
+.fn.show .fn-pop { display: block; }
+@media (max-width: 700px) {
+  .fn.show .fn-pop { position: fixed; left: 12px; right: 12px; bottom: 12px; top: auto; width: auto; max-width: none; }
+}
+ol.notes { font-family: var(--sans); font-size: 14px; line-height: 1.45; } ol.notes li { margin-bottom: 0.5em; }
+
+/* log */
+ol.log { list-style: none; padding: 0; margin: 0 0 1.2em; border-top: 1px solid var(--rule); }
+ol.log > li { display: grid; grid-template-columns: 104px 1fr; gap: 0 14px; padding: 10px 0; margin: 0; border-bottom: 1px solid var(--rule); }
+ol.log time { font-family: var(--sans); font-size: 14px; color: var(--ink-3); padding-top: 2px; font-variant-numeric: tabular-nums; }
+ol.log .entry { font-size: 16px; } ol.log .entry p:last-child { margin-bottom: 0; }
+@media (max-width: 600px) { ol.log > li { grid-template-columns: 1fr; } }
+
+/* appendix toggles */
+details.app { border-bottom: 1px solid var(--rule); padding: 10px 0; }
+details.app > summary { cursor: pointer; font-family: var(--sans); font-weight: 600; font-size: 15px; list-style: none; }
+details.app > summary::-webkit-details-marker { display: none; }
+details.app > summary::before { content: "+"; display: inline-block; width: 1.2em; color: var(--ink-3); }
+details.app[open] > summary::before { content: "−"; }
+details.app > div { padding: 8px 0 4px 1.2em; font-size: 15.5px; }
+h2#appendix { margin-top: 3em; }
+
+/* figures */
+figure { margin: 2em 0 2.2em; }
+.fig-panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px 8px; }
+.fig-top { display: flex; flex-wrap: wrap; gap: 6px 22px; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.fig-title { font-family: var(--sans); font-weight: 600; font-size: 15px; color: var(--ink); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-family: var(--sans); font-size: 13.5px; color: var(--ink); }
+.legend i { display: inline-block; width: 20px; height: 0; border-top: 2.5px solid; vertical-align: middle; margin-right: 6px; }
+.fig-note { font-family: var(--sans); font-size: 12.5px; line-height: 1.4; color: var(--ink-3); margin-top: 4px; }
+.chart { width: 100%; min-height: 120px; }
+.chart-fallback { font-family: var(--sans); font-size: 14px; color: var(--ink-3); padding: 28px 8px; text-align: center; }
+figcaption { font-family: var(--sans); font-size: 14px; line-height: 1.5; color: var(--ink-2); margin: 10px 2px 0; max-width: 760px; }
+figcaption b { color: var(--ink); font-weight: 600; }
+
+/* examples */
+.examples { list-style: none; padding: 0; margin: 0.4em 0 1.3em; }
+.examples li { border-left: 2px solid var(--rule-2); padding: 2px 0 2px 14px; margin-bottom: 8px; font-style: italic; color: var(--ink-2); }
+
+/* tables */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 1.6em 0 1.9em; }
+.table-cap { font-family: var(--sans); font-size: 14px; color: var(--ink-2); margin: 0 0 8px; }
+.table-cap b { color: var(--ink); font-weight: 600; }
+table { border-collapse: collapse; font-family: var(--sans); font-size: 14.5px; line-height: 1.4;
+  font-variant-numeric: tabular-nums lining-nums; width: 100%; }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--rule); text-align: right; vertical-align: top; }
+th:first-child, td:first-child { padding-left: 0; text-align: left; }
+th:last-child, td:last-child { padding-right: 0; }
+thead th { font-weight: 600; color: var(--ink-2); border-bottom: 1px solid var(--ink-3); vertical-align: bottom; }
+tbody th { font-weight: 400; }
+table.text td, table.text th { text-align: left; }
+td.em { font-weight: 600; color: var(--ink); }
+td.dim { color: var(--ink-3); }
+.sub { display: block; font-weight: 400; font-size: 12.5px; color: var(--ink-3); }
+.pill { display: inline-block; font-size: 12.5px; border-radius: 3px; padding: 0 6px; white-space: nowrap; border: 1px solid; }
+.pill.done, .pill.pass { color: #1f6a41; border-color: #9fcbb1; background: #edf6f0; }
+.pill.partial { color: #8a5518; border-color: #e0bb8c; background: var(--warm); }
+.pill.todo { color: var(--ink-3); border-color: var(--rule-2); background: transparent; }
+.table-note { font-family: var(--sans); font-size: 13px; color: var(--ink-2); margin: 8px 0 0; }
+.load-error { font-family: var(--sans); font-size: 14px; color: #8a5518; background: var(--warm); border-radius: 4px; padding: 8px 12px; }
+.footer { font-family: var(--sans); font-size: 13px; color: var(--ink-3); margin-top: 2.5em; }
+
+@media (max-width: 600px) {
+  body { font-size: 17px; }
+  main { padding-top: 28px; }
+  h1 { font-size: 1.6rem; }
+  .fig-panel { padding: 12px 10px 6px; }
+}
+@media print {
+  body { background: #fff; font-size: 10.5pt; }
+  .page { padding-left: 0; } .page > .toc, .toc-mobile { display: none; }
+  .fn-pop { display: none !important; }
+  .fig-panel { border: 0; padding: 0; }
+  figure, .table-wrap { break-inside: avoid; }
+}
+
+/* tabs between pilot pages */
+.tabs { display: flex; flex-wrap: wrap; gap: 4px 22px; font-family: var(--sans); font-size: 15px; margin: 0 0 22px; border-bottom: 1px solid var(--rule); }
+.tabs a { color: var(--ink-2); text-decoration: none; padding: 6px 0 7px; margin-bottom: -1px; border-bottom: 2px solid transparent; }
+.tabs a:hover { color: var(--accent); }
+.tabs a[aria-current="page"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--accent); }
+/* summary box and data-table toggles */
+.answer ul { padding-left: 1.15em; } .answer li { font-size: 16px; margin-bottom: 0.45em; }
+details.tv { margin: 8px 2px 0; font-family: var(--sans); }
+details.tv > summary { cursor: pointer; font-size: 13px; color: var(--ink-3); }
+details.tv .table-wrap { margin: 8px 0 4px; }
+details.tv table { font-size: 13px; } details.tv th, details.tv td { padding: 4px 8px; white-space: nowrap; }
+.legend i.dash { border-top-style: dashed; }
+.legend i.open { width: 10px; height: 10px; border: 1.5px solid; border-radius: 50%; }
+.legend i.dot { border-top-style: dotted; }
+.legend svg.mk { width: 12px; height: 12px; vertical-align: -1px; margin-right: 6px; overflow: visible; }
+</style></head><body><div class="page" style="padding-left:0"><main>
+<header>
+  <nav class="tabs" aria-label="Pages"><a href="./">Results</a><a href="protocol.html" aria-current="page">Protocol v2</a></nav>
+  <p class="crumbs"><b>J-lens introspection</b> · Protocol v2</p>
+  <h1>Introspection v2: Procedures</h1>
+  <p class="byline">Qwen3.6-27B · J++ lens · October 2026 <span class="tag">Frozen design</span></p>
+</header>
+
+<p>Model: Qwen/Qwen3.6-27B (thinking disabled, greedy decoding)</p>
+<p>We want to answer: Does the model’s report about its earlier processing agree with the lens readout? And does changing the lens contents during that earlier processing change the report?</p>
+<p>Controls for the model re-deriving its answer from the prompt, which is still in context at report time, will be added in a later version.</p>
+<h2>What changed from v1</h2>
+<div class="table-wrap"><table class="text">
+<thead>
+<tr>
+<th>v1</th>
+<th>v2</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The model replies “READY1”; we read one token (assistant start).</td>
+<td>The model holds the item in mind while copying a neutral sentence; we read every copied token.</td>
+<td>Replying “READY1” never requires the item, so the model has no reason to keep it active. The copy task is the paper’s directed-modulation setup, and averaging over many tokens reduces noise.</td>
+</tr>
+<tr>
+<td>Fixed candidate lists with hand-checked single-token spellings.</td>
+<td>A cheap LLM judge labels which lens tokens and which reports name a category item.</td>
+<td>Fixed lists cap what the model can choose and require spelling bookkeeping. The judge handles casing, spacing, plurals, and synonyms.</td>
+</tr>
+<tr>
+<td>Eligibility: at least 4 list items in the top K at <strong>every</strong> qualifying block.</td>
+<td>Eligibility: the lens’s top item appears in the top K at one or more copied positions at the readout block.</td>
+<td>Only about 1–2 unrelated concepts show up at a single layer. Requiring 4 at every block fails even when a real item is held.</td>
+</tr>
+<tr>
+<td>Blocks qualified with the item named in the prompt; results compared across all qualifying blocks.</td>
+<td>One readout block: the block whose lens shows the most category items on the preliminary trials.</td>
+<td>Simpler for now. A named item can also pass the v1 check by echoing the input.</td>
+</tr>
+<tr>
+<td>Correlational only.</td>
+<td>A lens-coordinate swap during the hold phase, with a matched control.</td>
+<td>A report that follows the swap shows it reads the earlier content.</td>
+</tr>
+<tr>
+<td>Groceries, animals, instruments.</td>
+<td>Groceries, animals, countries.</td>
+<td>Countries were the best-represented category in the paper (§3.4).</td>
+</tr>
+</tbody>
+</table></div>
+<h2>0. The LLM judge</h2>
+<p>We use a cheap LLM judge in place of fixed candidate lists. The judge is a fixed, version-pinned model run at temperature 0. We record its model ID and freeze its prompts before collecting data.</p>
+<p>The judge sees only the text it is labeling and the category. It never sees the lens readout, the trial, the setting, or the other labels, so its labels cannot be biased toward agreement.</p>
+<p>The judge has three jobs.</p>
+<p><strong>a) Labeling lens tokens.</strong> Given one token string and a category, the judge returns one of:</p>
+<div class="table-wrap"><table class="text">
+<thead>
+<tr>
+<th>Label</th>
+<th>Meaning</th>
+<th>Example (groceries)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Item: {canonical name}</td>
+<td>The token, read as a whole word, names one item in the category. Casing, a leading space, plurals, and common variant spellings are all accepted.</td>
+<td>“␣Milk” → milk; “apples” → apple</td>
+</tr>
+<tr>
+<td>Fragment: {canonical name}</td>
+<td>The token is clearly the beginning of one specific item’s name and could not plausibly begin anything else in the category.</td>
+<td>“pomegran” → pomegranate</td>
+</tr>
+<tr>
+<td>None</td>
+<td>Anything else.</td>
+<td>“␣the”, “kitchen”, “food”</td>
+</tr>
+</tbody>
+</table></div>
+<p>Labels are per category, so the same token can receive different labels in different categories (“turkey” is a grocery item and also a country). We label each distinct token string once per category and cache the result, so the number of judge calls is set by the number of distinct tokens that appear, not by the number of trials. Primary analyses use <strong>Item</strong> labels only. A sensitivity analysis also counts <strong>Fragment</strong> labels.</p>
+<p><strong>b) Labeling reports.</strong> Given a free-naming answer and the category, the judge returns the canonical item named, <strong>Abstention</strong> (NONE, “I can’t tell”, and similar), or <strong>Not a category item</strong>.</p>
+<p><strong>c) Merging synonyms.</strong> After labeling, the judge is shown all canonical names collected for a category and groups names for the same item (for example, “eggplant” and “aubergine”, or “Holland” and “Netherlands”). Each group gets one canonical name. We freeze the merged label cache before the stage that uses it, and we label tokens or reports first seen later with the same frozen prompts.</p>
+<p><strong>Validation.</strong> Before the main experiment, we hand-check 200 random token labels and 100 random report labels. We proceed if agreement is at least 95%; otherwise we revise the judge prompt and re-validate on a fresh sample. We also re-run the judge on 200 inputs and require identical labels. We report both checks.</p>
+<p><strong>Limitation that the judge does not remove.</strong> The lens can only show items whose names appear as a single token. If the model privately chooses an item whose name spans several tokens (for example, “watermelon” split into “water” + “melon”), the lens cannot name it. We therefore record whether the reported item’s name is a single token in any casing or spacing (an automatic tokenizer check), and we report agreement separately for single-token and multi-token reports.</p>
+<h2>1. Carrier sentences</h2>
+<p>We use a fixed pool of 12 neutral carrier sentences, each 10–16 tokens long. Carriers must contain no food, animals, places, nationalities, or languages. For example:</p>
+<ul>
+<li>The old painting hung crookedly on the wall.</li>
+<li>She folded the letter and placed it back inside the wooden drawer.</li>
+<li>He waited for the kettle while the clock ticked above the door.</li>
+</ul>
+<p>Each situation is assigned one carrier. Carriers are balanced across categories and conditions.</p>
+<h2>2. The hold phase: present a situation and record activations</h2>
+<p>Each trial begins with a request to choose an item silently and keep it in mind while copying:</p>
+<div class="answer"><span class="answer-tag">Prompt</span>
+<p>Imagine {setting}. Silently choose one {category phrase} suitable for that setting, and keep it in mind while you copy the sentence below. Copy the sentence exactly as written, word for word, and write nothing else. Do not name or describe the item you chose.</p>
+<p>Sentence: {carrier}</p>
+</div>
+<p>For example:</p>
+<div class="table-wrap"><table class="text">
+<thead>
+<tr>
+<th>Category</th>
+<th>Example prompt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Groceries</td>
+<td>Imagine a ferry crossing. Silently choose one item commonly bought at a grocery store suitable for that setting, and keep it in mind while you copy the sentence below. Copy the sentence exactly as written, word for word, and write nothing else. Do not name or describe the item you chose. Sentence: The old painting hung crookedly on the wall.</td>
+</tr>
+<tr>
+<td>Animals</td>
+<td>Imagine a wildlife documentary. Silently choose one animal suitable for that setting, and keep it in mind while you copy the sentence below. …</td>
+</tr>
+<tr>
+<td>Countries</td>
+<td>Imagine a travel agency window display. Silently choose one country suitable for that setting, and keep it in mind while you copy the sentence below. …</td>
+</tr>
+</tbody>
+</table></div>
+<p>The wording “exactly as written, word for word, and write nothing else” is deliberate. In exploratory runs (experiment v0), Qwen sometimes abandoned the copy and listed category items unless told to copy word for word.</p>
+<p>We allow up to 64 generated tokens. A trial is valid only if the reply, with surrounding whitespace stripped, exactly matches the carrier, followed by the end of the assistant turn. We report the invalid rate.</p>
+<p>After generation, we run one forward pass over the prompt plus the model’s reply. We record the activation at each block’s output at every token of the copied sentence (the copied positions). We exclude the end-of-turn token. We also record the assistant-start token so we can compare with v1, as a secondary measure.</p>
+<p>We save the activations and the conversation state.</p>
+<h2>3. Lens score and the no-instruction baseline</h2>
+<p>We run the copy request with no hold instruction once per carrier (12 trials):</p>
+<div class="answer"><span class="answer-tag">Prompt</span>
+<p>Copy the sentence below exactly as written, word for word, and write nothing else.</p>
+<p>Sentence: {carrier}</p>
+</div>
+<p>The validity check and recording are the same as in step 2.</p>
+<p><strong>Lens score.</strong> At each block and copied position, we rank all vocabulary tokens by J++ Lens score, excluding tokens with neither letters nor digits, as in the J++ implementation. We take the top N = 100 tokens and look up their judge labels. An item’s score at that block and position is the highest lens log-probability among top-N tokens labeled as that item. If none of its tokens is in the top N, its score is the log-probability of the token ranked N (a floor). For each block, we average an item’s score across copied positions. We then subtract the same quantity from the no-instruction trial with the same carrier. This <strong>baseline-corrected score</strong> removes item-specific lens biases, such as frequent tokens that always score high. We use it throughout.</p>
+<h2>4. Preliminary self-chosen trials: the readout block and the eligibility cutoff</h2>
+<p>We run 24 preliminary hold-phase trials (8 situations per category). The grocery and animal situations are the same as v1. The country situations are new:</p>
+<div class="table-wrap"><table class="text">
+<thead>
+<tr>
+<th>#</th>
+<th>Groceries</th>
+<th>Animals</th>
+<th>Countries</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>a birthday breakfast</td>
+<td>a natural history lecture</td>
+<td>a travel agency window display</td>
+</tr>
+<tr>
+<td>2</td>
+<td>a potluck supper</td>
+<td>a wildlife calendar</td>
+<td>a geography quiz night</td>
+</tr>
+<tr>
+<td>3</td>
+<td>a roadside grocery stop</td>
+<td>a rescue center visit</td>
+<td>a stamp collector’s album</td>
+</tr>
+<tr>
+<td>4</td>
+<td>an evening cooking class</td>
+<td>an illustrated alphabet book</td>
+<td>a cooking show about national dishes</td>
+</tr>
+<tr>
+<td>5</td>
+<td>refreshments for an amateur astronomy club</td>
+<td>an educational display about seed dispersal</td>
+<td>an international film festival</td>
+</tr>
+<tr>
+<td>6</td>
+<td>supplies for a disaster-response drill</td>
+<td>a landscape seen from a hot-air balloon</td>
+<td>a postcard rack at an airport</td>
+</tr>
+<tr>
+<td>7</td>
+<td>a meal during a ceramics workshop</td>
+<td>a discussion of seasonal migration</td>
+<td>a model United Nations session</td>
+</tr>
+<tr>
+<td>8</td>
+<td>food for a weekend archaeological dig</td>
+<td>a display about animals using tools</td>
+<td>a world-music radio hour</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Choosing the readout block (provisional).</strong> For each block up to 54 (the same exclusion as v1), we count, at each copied position, the distinct category items among the lens’s top N = 100 tokens: tokens the judge labels as an Item in that trial’s category, each item counted once. We average this count across copied positions, then across trials within each category, then across the three categories with equal weight. The <strong>readout block</strong> is the block with the highest average; ties go to the earlier block. We report the full per-block curve. We fix the readout block before the main experiment.</p>
+<p>This replaces a known-answer calibration (holding an item we specify) for now, for simplicity. It picks the block where the lens shows the most category content; it does not check that this content tracks the item the model chose.</p>
+<p>For each trial, the <strong>lens reference item</strong> is the category item with the highest baseline-corrected score at the readout block.</p>
+<p>A trial is <strong>eligible</strong> if a token labeled as the reference item appears in the top K at the readout block at one or more copied positions.</p>
+<p>We choose the smallest K from 10, 25, or 50 that makes at least 6 of 8 preliminary situations eligible in each category. If none works, we reconsider the criterion before proceeding. We then fix K for the main experiment.</p>
+<p>We also record, for each trial, the margin between the reference item’s score and the second-highest item’s at the readout block. We report it as a covariate; it is not used for eligibility.</p>
+<h2>5. Run the main experiment on 480 situations</h2>
+<p>We write 160 new settings per category (480 in total), removing duplicates and the preliminary settings, and freeze them before any hold-phase trials.</p>
+<p>For each situation, we run the hold phase (step 2), check that the copy is valid, apply the eligibility rule (step 4) with the fixed K, and record the lens reference item.</p>
+<h2>6. Ask the model to “introspect” on its earlier contents</h2>
+<p>Every report question is asked in a <strong>separate branch</strong> from the saved post-hold conversation state, so earlier questions cannot influence later ones.</p>
+<h3>a) Free naming</h3>
+<p>We ask:</p>
+<div class="answer"><span class="answer-tag">Prompt</span>
+<p>While you were copying that sentence, which {category phrase} were you keeping in mind?</p>
+</div>
+<p>Each variant appends one of three final instructions (unchanged from v1):</p>
+<div class="table-wrap"><table class="text">
+<thead>
+<tr>
+<th>Condition</th>
+<th>Final instruction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Abstention allowed</td>
+<td>Reply with the name of that item, or NONE if you cannot identify one.</td>
+</tr>
+<tr>
+<td>2. Abstention not mentioned</td>
+<td>Reply with the name of that item.</td>
+</tr>
+<tr>
+<td>3. Answer explicitly required</td>
+<td>Reply with the name of that item. You must provide an item name even if uncertain; do not answer NONE or otherwise abstain.</td>
+</tr>
+</tbody>
+</table></div>
+<p>We allow up to 16 generated tokens. The judge maps each answer to a canonical item, Abstention, or Not a category item (step 0b). A report matches if its canonical item is the same as the reference item’s.</p>
+<p>Abstentions, non-category answers, and truncated responses count as nonmatches. We report their frequencies separately.</p>
+<h3>b) Recognition</h3>
+<p>We ask the same question with four candidate items from the category:</p>
+<div class="answer"><span class="answer-tag">Prompt</span>
+<p>While you were copying that sentence, which item commonly bought at a grocery store were you keeping in mind?
+A. milk
+B. apples
+C. rice
+D. bread</p>
+</div>
+<p>As in v1, the four options are the four highest-scoring category items at the readout block: the lens reference item plus the next three. If the lens shows fewer than four category items in the trial, we fill the remaining options at random from the items the judge labeled as Items in that category anywhere in the experiment. We record how many options were filled this way. Options are shown by their canonical names.</p>
+<p>Each variant appends one of the following instructions (unchanged from v1):</p>
+<div class="table-wrap"><table class="text">
+<thead>
+<tr>
+<th>Condition</th>
+<th>Final instruction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Answer required</td>
+<td>Reply with exactly one letter: A, B, C, or D. Choose the best answer even if uncertain.</td>
+</tr>
+<tr>
+<td>2. Abstention allowed</td>
+<td>Reply with exactly one letter: A, B, C, or D, or U if you cannot identify one.</td>
+</tr>
+</tbody>
+</table></div>
+<p>As in v1, we shuffle the four items randomly before assigning letters, independently of their lens rankings, then rotate the shuffled order once. We balance the reference item’s letter position across situations within each category. Both instruction variants under both orders give four recognition questions per situation.</p>
+<p>We allow up to 16 generated tokens and accept a single valid answer letter, ignoring surrounding whitespace and punctuation. Responses with multiple answers, explanations, or no identifiable valid letter are recorded as invalid.</p>
+<h2>7. Measures</h2>
+<p><strong>Candidate set.</strong> For each trial, the candidate set is every canonical item that the judge found in the trial’s lens top N (at the readout block, at any copied position) or in its reports. Items absent from the lens top N get the floor score from step 3.</p>
+<p><strong>Primary outcomes</strong> (on eligible, valid trials, free naming condition 2):</p>
+<ol>
+<li><strong>Free-naming agreement.</strong> The percentage of reports whose canonical item matches the lens reference item.</li>
+<li><strong>Lens score as a predictor of the report.</strong> We fit a conditional logit over each trial’s candidate set: P(report = i) ∝ exp(β_L · lens_i). Here lens_i is item i’s baseline-corrected score at the readout block, standardized within category. We report β_L with a 95% bootstrap confidence interval (resampling situations). Reports labeled Abstention or Not a category item are excluded from this fit and reported separately.</li>
+<li><strong>Swap-follow rate</strong> (step 8) compared with its matched control.</li>
+</ol>
+<p>Outcomes 1 and 2 are correlational. On their own they cannot separate introspection from the model re-deriving a plausible item from the setting; the later controls are meant to address this. Outcome 3 is the causal test.</p>
+<p><strong>Secondary outcomes:</strong></p>
+<ul>
+<li>Free naming: agreement for all three conditions.</li>
+<li>Recognition:
+<ul>
+<li><strong>Exact agreement:</strong> the percentage of responses selecting the lens reference item (chance is 25%).</li>
+<li><strong>Relative rank:</strong> the average lens rank (1–4) of the selected option. Abstentions and invalid responses are excluded from the rank and reported as proportions.</li>
+</ul>
+</li>
+<li>Agreement split by whether the reported item’s name is a single token (step 0).</li>
+<li>The primary outcomes recomputed with Fragment labels counted as items (step 0a).</li>
+<li>Per-block versions of the primary outcomes for every block up to 54 (with the reference item recomputed at each block), and the v1-style assistant-start readout compared with the copied-position readout.</li>
+<li>The same analyses on all valid trials, ignoring eligibility. Eligibility depends on the lens, so this is a sensitivity check.</li>
+</ul>
+<h2>8. Causal test: lens-coordinate swap during the hold phase</h2>
+<p>We sample 120 eligible situations (40 per category).</p>
+<p><strong>Swap target.</strong> For each situation with reference item A, we choose B at random from the items the judge labeled as Items in that category anywhere in the experiment. Each such item was seen as a lens token, so it has a single-token form. B must not be among the items found in the trial’s lens top 10 at the readout block at any copied position.</p>
+<p><strong>Lens vectors.</strong> v_A is the lens vector of the token labeled A that had the highest score at the readout block in that trial. v_B is the lens vector of B’s single-token form with the same casing and leading-space pattern as A’s token. If B has no such form, we choose a different B.</p>
+<p><strong>Intervention.</strong> During the hold phase only, at every copied position at the readout block, we apply the paper’s lens-coordinate swap between A and B (§2.5): with V = [v_A v_B] and c = V†h, set h ← h + V(σ(c) − c), where σ swaps the two coordinates and is scaled by α. We test α = 1 and α = 2. The prompt tokens and report-phase tokens are not modified. The report questions then run on the intervened hold-phase state with no further intervention.</p>
+<p><strong>Validity.</strong> We regenerate the copy under the intervention. Trials where the copied text changes are invalid and reported separately, because the swap would then be visible in the output.</p>
+<p><strong>Matched control.</strong> Same positions, block, and α, but we add a perturbation of equal norm at each position along a random direction orthogonal to v_A and v_B.</p>
+<p><strong>Questions.</strong> Free naming condition 2, plus recognition condition 1 under both orders. Recognition options are A, B, and the two highest-scoring other category items at the readout block in the unswapped trial, filled as in step 6b if needed.</p>
+<p><strong>Measures:</strong></p>
+<ul>
+<li><strong>Swap-follow rate:</strong> the percentage of reports whose canonical item is B. We compare swap with control for each α.</li>
+<li><strong>Reference retention:</strong> the percentage of reports still naming A.</li>
+</ul>
+<p>B is chosen to be absent from the trial’s lens readout, so a report of B is unlikely to come from the setting alone. If reports follow B under the swap but not under the control, while the copied text is unchanged, the report is reading the earlier J-space content.</p>
+<h2>9. Stopping rules and reporting</h2>
+<ul>
+<li>If the judge fails validation twice (step 0), we stop and reconsider the labeling approach.</li>
+<li>If, at the readout block, the lens top N contains no category item at any copied position in more than half of any category’s preliminary trials, we stop and reconsider.</li>
+<li>If no K in step 4 meets the 6-of-8 criterion, we reconsider the criterion before running the main experiment and record the change as an amendment.</li>
+<li>The judge model, its prompts, and the label cache; the carriers; the settings; the readout block; and K are all frozen before the stage that uses them. Any later change is recorded as a dated amendment.</li>
+</ul>
+
+</main></div></body></html>

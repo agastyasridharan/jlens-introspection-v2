@@ -1,0 +1,129 @@
+{
+ "tag": "Updating live",
+ "updated": "2026-10-25 13:20 ET",
+ "log": [
+  {
+   "t": "Oct 25, 13:15 ET",
+   "text": "Stimuli frozen: 12 carriers, 480 main settings (160 per category), 24 preliminary settings. Judge chosen after a 25-token probe (mini over nano)."
+  },
+  {
+   "t": "Oct 25, 13:17 ET",
+   "text": "Hold phase finished on 8 H200s in about 5 minutes: 516/516 valid copies, free naming collected in all three conditions."
+  }
+ ],
+ "thanks": "Qwen3.6-27B is asked to silently choose a grocery item, animal, or country for a setting and keep it in mind while copying a neutral sentence. We read the J++ lens at every copied token, then ask the model (in separate branches) which item it was keeping in mind. Design: <a href=\"protocol.html\">protocol v2</a>. Step 8 (the causal swap) is deliberately not run here.",
+ "summary_tag": "Summary so far (live)",
+ "summary": [
+  "<b>Hold phase complete: 516/516 copies valid.</b> Qwen reproduced every carrier sentence exactly while holding an item, so the copy task does not leak the item into the output.",
+  "<b>Next:</b> judge labels for preliminary lens tokens, then the readout block and the eligibility cutoff K."
+ ],
+ "status": [
+  {
+   "step": "0",
+   "what": "LLM judge: prompts frozen, model pinned (<code>gpt-5.4-mini-2026-03-17</code>, temperature 0)",
+   "status": "running"
+  },
+  {
+   "step": "1–2",
+   "what": "Carriers (12), settings (480 + 24), hold phase on 516 trials",
+   "status": "done"
+  },
+  {
+   "step": "3",
+   "what": "No-instruction baselines and baseline-corrected lens score",
+   "status": "running"
+  },
+  {
+   "step": "4",
+   "what": "Preliminary trials: readout block and eligibility cutoff K",
+   "status": "running"
+  },
+  {
+   "step": "5",
+   "what": "Main experiment: 480 situations",
+   "status": "running"
+  },
+  {
+   "step": "6a",
+   "what": "Free naming (3 conditions)",
+   "status": "running"
+  },
+  {
+   "step": "6b",
+   "what": "Recognition (lens top 4; 2 variants × 2 orders)",
+   "status": "todo"
+  },
+  {
+   "step": "7",
+   "what": "Measures",
+   "status": "todo"
+  },
+  {
+   "step": "8",
+   "what": "Causal swap test",
+   "status": "skip"
+  }
+ ],
+ "appendix": [
+  {
+   "title": "Implementation notes and deviations",
+   "html": "<ul><li><b>Judge model.</b> <code>gpt-5.4-mini-2026-03-17</code>, reasoning off, temperature 0, strict JSON schema, one input per call (the judge never sees other tokens, the trial, or the setting). We first tried <code>gpt-5.4-nano</code>; on 25 hand-made probe tokens it labeled incomplete words such as “pomegran” and “banan” as Items (4/25 errors vs 1/25 for mini, the one being a Fragment), so we switched before labeling any data.</li><li><b>Lens log-probabilities</b> are a log-softmax over the vocabulary after removing tokens with no letter or digit (the J++ readout filter), so baseline correction compares like with like.</li><li><b>Hold-phase and free-naming generation ran for all 516 trials in one pass,</b> before the readout block and K were fixed. Nothing in the hold phase or free naming depends on the block or K, and the main-trial lens data are not analyzed until both are frozen from the preliminary trials. Recognition (which needs the readout block) runs afterwards from the saved post-hold state.</li><li><b>Settings</b> were generated with <code>gpt-5.5</code> (5 thematic batches of 60 per category), screened for naming any specific item, food, animal, country, city, nationality or language, screened for category fit, deduplicated against each other and the preliminary settings, and 160 per category drawn with a fixed seed. Frozen before any hold-phase trial.</li><li><b>Carriers</b> are balanced: each of the 12 carriers is used 40 times in the main experiment and twice in the preliminary trials.</li><li><b>Hand-checks</b> of judge labels (step 0 validation) are done by Claude, not by a human; the sampled labels are listed on this page so they can be audited.</li></ul>"
+  }
+ ],
+ "charts": {},
+ "hold": {
+  "rows": [
+   [
+    "No-instruction baselines (12 carriers)",
+    "12",
+    "12/12",
+    "12/12"
+   ],
+   [
+    "Preliminary (8 per category)",
+    "24",
+    "24/24",
+    "24/24"
+   ],
+   [
+    "Main (160 per category)",
+    "480",
+    "480/480",
+    "480/480"
+   ]
+  ],
+  "examples": [
+   [
+    "p-grocery-000",
+    "a birthday breakfast",
+    "Birthday cake"
+   ],
+   [
+    "p-grocery-001",
+    "a potluck supper",
+    "Potato salad"
+   ],
+   [
+    "p-animal-000",
+    "a natural history lecture",
+    "Octopus"
+   ],
+   [
+    "p-animal-001",
+    "a wildlife calendar",
+    "Owl"
+   ],
+   [
+    "p-country-000",
+    "a travel agency window display",
+    "France"
+   ],
+   [
+    "p-country-001",
+    "a geography quiz night",
+    "France"
+   ]
+  ],
+  "text": "All 516 hold-phase trials ran on 8 H200s in FP32 (one replica per GPU, eager attention, TF32 off, greedy decoding, thinking disabled). Every reply reproduced the carrier exactly, so no trial is lost to the validity check. Each trial was recorded at every block output (0–62) at each copied token and at the assistant-start token; the J++ lens top 100 (tokens with no letter or digit excluded, log-softmax over the remaining vocabulary) was saved at every block and position."
+ }
+}
