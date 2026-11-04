@@ -5,7 +5,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SUBCSS_G = ('.subtabs{display:flex;gap:18px;font-family:var(--sans);font-size:14px;margin:-12px 0 20px}'
             '.subtabs a{color:var(--ink-2);text-decoration:none;padding:2px 0}.subtabs a[aria-current="page"]{color:var(--ink);font-weight:600;'
             'border-bottom:2px solid var(--accent)}.subtabs a:hover{color:var(--accent)}')
-NAV = [('index.html', 'Results (v2)'), ('protocol.html', 'Protocol v2'), ('v3.html', 'v3: Natural swap')]
+NAV = [('index.html', 'Results (v2)'), ('protocol.html', 'Protocol v2'), ('v3.html', 'v3: Natural swap'), ('v4.html', 'v4: Cued hold')]
 
 
 def nav(cur):
@@ -46,3 +46,8 @@ render('protocol-v3.md', 'v3-protocol.html', 'Introspection v3: Natural Swap', '
        'Running · amendments on the results page',
        '<p class="thanks">A new experiment: no hold instruction. The model answers a natural recommendation request, then reports which <em>other</em> items were strongly represented. The primary test swaps two such competitors without changing the answer. '
        'Results are on the <a href="v3.html">v3 results page</a>.</p>', cur='v3.html', sub=subnav('v3-protocol.html'))
+from build_v4 import subnav as subnav4
+render('protocol-v4.md', 'v4-protocol.html', 'Introspection v4: Cued Hold', 'Protocol v4', 'Introspection v4: Cued single-token hold',
+       'Pilot done · no-go',
+       '<p class="thanks">The v2 copy-and-hold prompt, with the hold pinned to one named word of the sentence. The pilot tests whether the lens shows the chosen item concentrated at that word. '
+       'Results are on the <a href="v4.html">v4 results page</a>.</p>', cur='v4.html', sub=subnav4('v4-protocol.html'))

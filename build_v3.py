@@ -14,7 +14,7 @@ MD = json.load(open(os.path.join(HERE, '..', 'v3', 'stimuli', 'main_design.json'
 SETN = {'rb': 'block 53', 'band': 'blocks 48–53', 'site': 'assistant-start token', 'last5': 'last 5 prompt tokens'}
 CAT = {'instrument': 'Instruments', 'grocery': 'Groceries', 'animal': 'Animals', 'country': 'Countries'}
 COL = {'instrument': '#7a4fa3', 'grocery': '#b0702a', 'animal': '#2f8a57', 'country': '#235fa6'}
-NAV = [('index.html', 'Results (v2)'), ('protocol.html', 'Protocol v2'), ('v3.html', 'v3: Natural swap')]
+NAV = [('index.html', 'Results (v2)'), ('protocol.html', 'Protocol v2'), ('v3.html', 'v3: Natural swap'), ('v4.html', 'v4: Cued hold')]
 
 
 def nav(cur):
