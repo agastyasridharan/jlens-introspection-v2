@@ -9,7 +9,7 @@ load = lambda n: json.load(open(os.path.join(RES, n))) if os.path.exists(os.path
 P, X = load('pilot.json'), load('pilot_explore.json')
 DESIGN = json.load(open(os.path.join(HERE, '..', 'v4', 'stimuli', 'pilot_design.json')))
 CAT = {'grocery': 'Groceries', 'animal': 'Animals', 'country': 'Countries'}
-NAV = [('index.html', 'Results (v2)'), ('protocol.html', 'Protocol v2'), ('v3.html', 'v3: Natural swap'), ('v4.html', 'v4: Cued hold')]
+NAV = [('index.html', 'Results (v2)'), ('protocol.html', 'Protocol v2'), ('v3.html', 'v3: Natural swap'), ('v4.html', 'v4: Cued hold'), ('v5.html', 'v5: Scaffolds')]
 LOG = [
     dict(t='2026-11-03 19:21 ET', text='Protocol v4 written and pilot criteria frozen before generation. Cue words frozen (<code>v4/stimuli/cues.json</code>): 3 per carrier, all single tokens in context.'),
     dict(t='2026-11-03 19:24 ET', text='Pilot generation done on 6 H200s: 72 of 72 copies exact, and token-for-token identical to the v2 hold-all copies of the same situations.'),
