@@ -57,6 +57,8 @@
           </div>
         </div>
         <p id="token-help" class="token-help">Readouts exist at the assistant-start token (the last prompt token, the <span class="mono">↵↵</span> after <span class="mono">&lt;/think&gt;</span>; the v3 readout and edit site) and at every answer token. Underlined tokens are selectable; the rest of the prompt has no saved readout.</p>
+        <p class="token-help rank-help"><span class="rk top">#6</span> next to an answer token = that exact token&#8217;s rank in the J++ readout (top 100) at
+          <select id="rank-ref"><option value="site">the assistant-start token (v3 readout site)</option><option value="selected">the selected token</option></select>, at the block chosen on the right. Items in the header and in every report carry the same rank for their best token.</p>
         <div id="tokens" class="tokens hidden" aria-label="Tokenized request and answer"></div>
         <div id="plain-prompt" class="plain-prompt" aria-label="Plain-text request and answer with selectable tokens"></div>
       </section>
@@ -78,7 +80,7 @@
         <div class="legend-row"><span class="chip chip-item">category item</span><span class="chip chip-B">B</span><span class="chip chip-C">C</span><span class="chip chip-X">answer item</span></div>
         <ol class="predictions" id="predictions"></ol>
         <details class="sample-detail" open>
-          <summary>B and C rank by block at this token (top 20)</summary>
+          <summary>B, C and answer-item rank by block at this token (top 100)</summary>
           <div id="rank-table"></div>
         </details>
       </aside>

@@ -1,6 +1,6 @@
 """Export the v3 per-situation readout dashboard data to v3-readouts/data/.
 index.json: one row per main situation (id, category, scenario, B, C, X, flags).
-s/{id}.json: prompt + answer tokens, J++ top-20 at blocks 40-54 for the assistant-start token and every answer token
+s/{id}.json: prompt + answer tokens, J++ top-20 (plus top-100 item and answer-token ranks) at blocks 40-54 for the assistant-start token and every answer token
 (token strings, log-probs, judge item labels), design (competitors, corrected scores, coordinates), the v3 swap-stage
 reports (fp32) and the v5 scaffold reports (bf16)."""
 import json, os, sys, glob
@@ -47,7 +47,10 @@ for f in sorted(glob.glob(os.path.join(IN, 'v3', 'data', 'main', 'records', '*.j
         if s not in sidx: sidx[s] = len(strings); strings.append(s)
         return sidx[s]
     items = {}
-    lensd = []
+    lensd, ranks = [], []
+    apos = {}
+    for k, t in enumerate(rec['generation']['token_ids']):
+        apos.setdefault(int(t), []).append(str(len(rec['initial_ids']) + k))
     for j, p in enumerate(positions):
         per = []
         for b in BLOCKS:
@@ -59,11 +62,21 @@ for f in sorted(glob.glob(os.path.join(IN, 'v3', 'data', 'main', 'records', '*.j
                 row.append([S(tok), round(float(lp[bi, j, r]), 2)])
             per.append(row)
         lensd.append(per)
+        rk = []
+        for b in BLOCKS:
+            bi = layers.index(b); im, tm = {}, {}
+            for r in range(ids.shape[2]):
+                tok = int(ids[bi, j, r]); it = L.item(c, tok)
+                if it and it not in im: im[it] = r + 1
+                for a in apos.get(tok, ()):
+                    tm.setdefault(a, r + 1)
+            rk.append([im, tm])
+        ranks.append(rk)
     prompt = [V[t] for t in rec['initial_ids']]
     gen = rec['generated_tokens']
     out = dict(id=tid, category=c, scenario=rec['scenario'], prompt_text=rec['prompt'], answer=rec['generation']['text'],
                prompt_tokens=prompt, answer_tokens=gen, site=rec['site'], positions=positions, blocks=BLOCKS, strings=strings,
-               items={str(k): v for k, v in items.items()}, lens=lensd)
+               items={str(k): v for k, v in items.items()}, lens=lensd, ranks=ranks, rank_depth=int(ids.shape[2]))
     d = D.get(tid)
     row = dict(id=tid, category=c, scenario=rec['scenario'], eligible=d is not None, skipped=SKIP.get(tid))
     if d:
