@@ -144,6 +144,7 @@ page = f'''<!doctype html>
   <span class="answer-tag">{R["summary_tag"]}</span>
   <ul>{summary}</ul>
 </div>
+<p>Per-trial token readouts, the reference item and every report: <a href="v2-readouts/">v2 readouts dashboard</a>.</p>
 {body}
 <p class="footer">Data: <code>data/results.json</code>. Last updated {R["updated"]}. </p>
 </main>

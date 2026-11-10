@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>v2 Readouts · J-lens introspection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20261110a">
+  <link rel="stylesheet" href="readouts.css?v=20261110a">
+</head>
+<body class="no-jlens">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">Token-level J++ readouts · protocol v2 main set (copy and hold)</p>
+      <p class="section-nav"><a href="../index.html">← v2 results</a> · <a href="../protocol.html">Protocol v2</a> · <a href="../v3-readouts/">v3 readouts →</a></p>
+      <h1>v2 readouts</h1>
+      <p class="dek">Each of the 480 main trials: the model silently picks an item and copies a sentence. The page shows the J++ lens readout at every copied token and at the assistant-start token, the frozen reference item, and every report: free naming, recognition, the A↔B swap and the v5 scaffolds. Pick a category and trial, then click any copied token.</p>
+    </div>
+    <dl class="run-meta" id="run-meta"></dl>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Categories"></nav>
+
+  <main>
+    <section class="context-bar">
+      <div>
+        <p class="kicker" id="sit-kicker">Trial</p>
+        <h2 id="sit-title">Loading…</h2>
+        <p id="sit-description"></p>
+      </div>
+      <label class="select-label">Show
+        <select id="filter-select">
+          <option value="eligible">All eligible trials</option>
+          <option value="match">Report (cond. 2) names the reference</option>
+          <option value="nomatch">Report (cond. 2) names something else</option>
+          <option value="swap">In the swap stage (120)</option>
+          <option value="swapB">Swap α = 2 report names B</option>
+          <option value="v5">Run in v5</option>
+          <option value="skipped">Not eligible</option>
+          <option value="all">All 480 trials</option>
+        </select>
+        <span>Trial</span><select id="sit-select"></select>
+      </label>
+    </section>
+
+    <div class="workspace">
+      <section class="panel prompt-panel">
+        <div class="panel-head">
+          <div>
+            <p class="kicker">Exact request + copied sentence</p>
+            <h3 id="prompt-label">—</h3>
+          </div>
+          <div class="view-switch" role="group" aria-label="Prompt display">
+            <button class="view-button active" data-view="text">Plain text</button>
+            <button class="view-button" data-view="tokens">Tokens</button>
+          </div>
+        </div>
+        <p id="token-help" class="token-help">Readouts exist at every copied token (the v2 reference is their average) and at the assistant-start token (<span class="mono">&lt;|im_start|&gt;</span> of the assistant turn). Underlined tokens are selectable; the rest of the prompt has no saved readout.</p>
+        <p class="token-help rank-help"><span class="rk top">#6</span> next to a token = the rank of
+          <select id="badge-item"></select> in that token&#8217;s J++ readout (top 100), at the block chosen on the right. Items in the header and in every report carry their rank at the selected token.</p>
+        <div id="tokens" class="tokens hidden" aria-label="Tokenized request and copy"></div>
+        <div id="plain-prompt" class="plain-prompt" aria-label="Plain-text request and copy with selectable tokens"></div>
+      </section>
+
+      <aside class="panel reading-panel" aria-live="polite">
+        <div class="panel-head reading-head">
+          <div>
+            <p class="kicker" id="lens-heading">J++ lens readout</p>
+            <h3 id="token-title">Select a token</h3>
+          </div>
+          <div class="rank-badge">
+            <span>BLOCK</span>
+            <strong id="block-badge">54</strong>
+          </div>
+        </div>
+        <div class="token-meta" id="token-meta"></div>
+        <label class="block-pick">Block <input type="range" id="block-range" min="40" max="54" step="1" value="54"><span id="block-val" class="mono">54</span></label>
+        <p class="token-help"><button type="button" id="copy-token-link">Copy token link</button> · <a id="token-link">Token permalink</a></p>
+        <div class="legend-row"><span class="chip chip-item">category item</span><span class="chip chip-A">A: reference</span><span class="chip chip-B">B: swap partner</span></div>
+        <ol class="predictions" id="predictions"></ol>
+        <details class="sample-detail" open>
+          <summary>Rank by block at this token, and by copied token at this block (top 100)</summary>
+          <div id="rank-table"></div>
+        </details>
+      </aside>
+    </div>
+
+    <section class="panel evidence" id="design-panel"><p class="kicker">Reference · frozen block 54, corrected score averaged over copied tokens</p><div id="design"></div></section>
+    <section class="panel evidence" id="reports-panel"><p class="kicker">Reports · fp32 · original run</p><div id="reports"></div></section>
+    <section class="panel evidence" id="swap-panel"><p class="kicker">v2 swap stage · A↔B at block 54 on every copied token</p><div id="swap"></div></section>
+    <section class="panel evidence" id="v5-panel"><p class="kicker">v5 scaffolds · bf16</p><div id="v5"></div></section>
+
+    <section class="method panel">
+      <div>
+        <p class="kicker">Readout</p>
+        <p>J++ lens (koayon/jpp-lenses, qwen3.6-27b), top 20 tokens by log-probability at blocks 40–54. Tokens with no letter or digit are removed before ranking; nothing else is filtered. Category items are the frozen judge labels (gpt-5.4-mini) with the v2 synonym map.</p>
+      </div>
+      <div>
+        <p class="kicker">Reference</p>
+        <p>Each item&#8217;s score is its best-token log-probability averaged over the copied tokens (floored at the rank-100 value), minus the same score on the baseline trial with the same sentence. The reference A is the top corrected item; a trial is eligible when A reaches the top K = 10 at some copied token.</p>
+      </div>
+      <div>
+        <p class="kicker">Edits</p>
+        <p>Swap: the A and B lens coordinates are exchanged at block 54 on every copied token (α = 1 exchanges, α = 2 overshoots). Control: a random direction orthogonal to both, matched in norm. Valid when the copy is unchanged.</p>
+      </div>
+      <div>
+        <p class="kicker">Exactness</p>
+        <p>Token strings are the saved prompt and copy ids, decoded one token at a time. Nothing is regenerated on this page.</p>
+      </div>
+    </section>
+  </main>
+  <script src="app.js?v=20261110a"></script>
+</body>
+</html>
