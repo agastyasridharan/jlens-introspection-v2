@@ -4,6 +4,7 @@ const CATS = [["instrument", "Musical instruments"], ["country", "Countries"]];
 const RB = 53;
 const state = { index: null, cat: "instrument", filter: "eligible", id: null, pos: null, block: RB, view: "text", rankRef: "site", data: null };
 const cache = {};
+const VER = "20261110b";  // bump on every data/code change so browsers skip stale cached copies
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const vis = s => s.replace(/ /g, "·").replace(/\n/g, "↵");
@@ -20,7 +21,7 @@ const itemRank = it => (refRanks()[0] || {})[it];
 const itemBadge = it => { const r = itemRank(it); return r ? rkBadge(r, it) : `<sup class="rk none" title="${esc(it)}: not in the top ${state.data.rank_depth} of ${refLabel()}">&gt;${state.data.rank_depth}</sup>`; };
 
 async function load(id) {
-  if (!cache[id]) cache[id] = fetch(`data/s/${id}.json`).then(r => r.json());
+  if (!cache[id]) cache[id] = fetch(`data/s/${id}.json?v=${VER}`).then(r => r.json());
   return cache[id];
 }
 
@@ -224,7 +225,7 @@ function renderV5() {
 }
 
 async function init() {
-  state.index = await fetch("data/index.json").then(r => r.json());
+  state.index = await fetch(`data/index.json?v=${VER}`).then(r => r.json());
   const S = state.index.situations;
   $("run-meta").innerHTML = `<dt>Model</dt><dd>Qwen3.6-27B</dd><dt>Lens</dt><dd>J++ · blocks 40–54</dd><dt>Requests</dt><dd>${S.length}</dd>` +
     `<dt>Eligible</dt><dd>${S.filter(s => s.eligible).length}</dd><dt>Valid swap pairs</dt><dd>${S.filter(s => s.valid_pair).length}</dd>`;
