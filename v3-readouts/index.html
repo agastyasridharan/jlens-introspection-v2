@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>v3 Readouts · J-lens introspection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="readouts.css">
+</head>
+<body class="no-jlens">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">Token-level J++ readouts · protocol v3 main set</p>
+      <p class="section-nav"><a href="../v3.html">← v3 results</a> · <a href="../v3-protocol.html">Protocol v3</a> · <a href="../v5.html">v5 scaffolds →</a></p>
+      <h1>v3 readouts</h1>
+      <p class="dek">Each of the 320 main requests, with the model&#8217;s answer, the J++ lens readout at the assistant-start token and at every answer token, the competitors B and C, and every report under no edit, swap, control and the v5 scaffolds. Pick a category and situation, then click any highlighted token.</p>
+    </div>
+    <dl class="run-meta" id="run-meta"></dl>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Categories"></nav>
+
+  <main>
+    <section class="context-bar">
+      <div>
+        <p class="kicker" id="sit-kicker">Situation</p>
+        <h2 id="sit-title">Loading…</h2>
+        <p id="sit-description"></p>
+      </div>
+      <label class="select-label">Show
+        <select id="filter-select">
+          <option value="eligible">All eligible situations</option>
+          <option value="pair">Swap and control both keep the answer</option>
+          <option value="flip">Swap makes C outrank B at the answer</option>
+          <option value="swapC">Self-report names C under the swap</option>
+          <option value="controlC">Self-report names C under the control</option>
+          <option value="skipped">Not eligible (no swap stage)</option>
+          <option value="all">All 320 requests</option>
+        </select>
+        <span>Situation</span><select id="sit-select"></select>
+      </label>
+    </section>
+
+    <div class="workspace">
+      <section class="panel prompt-panel">
+        <div class="panel-head">
+          <div>
+            <p class="kicker">Exact request + saved answer</p>
+            <h3 id="prompt-label">—</h3>
+          </div>
+          <div class="view-switch" role="group" aria-label="Prompt display">
+            <button class="view-button active" data-view="text">Plain text</button>
+            <button class="view-button" data-view="tokens">Tokens</button>
+          </div>
+        </div>
+        <p id="token-help" class="token-help">Readouts exist at the assistant-start token (the last prompt token, the <span class="mono">↵↵</span> after <span class="mono">&lt;/think&gt;</span>; the v3 readout and edit site) and at every answer token. Underlined tokens are selectable; the rest of the prompt has no saved readout.</p>
+        <div id="tokens" class="tokens hidden" aria-label="Tokenized request and answer"></div>
+        <div id="plain-prompt" class="plain-prompt" aria-label="Plain-text request and answer with selectable tokens"></div>
+      </section>
+
+      <aside class="panel reading-panel" aria-live="polite">
+        <div class="panel-head reading-head">
+          <div>
+            <p class="kicker" id="lens-heading">J++ lens readout</p>
+            <h3 id="token-title">Select a token</h3>
+          </div>
+          <div class="rank-badge">
+            <span>BLOCK</span>
+            <strong id="block-badge">53</strong>
+          </div>
+        </div>
+        <div class="token-meta" id="token-meta"></div>
+        <label class="block-pick">Block <input type="range" id="block-range" min="40" max="54" step="1" value="53"><span id="block-val" class="mono">53</span></label>
+        <p class="token-help"><button type="button" id="copy-token-link">Copy token link</button> · <a id="token-link">Token permalink</a></p>
+        <div class="legend-row"><span class="chip chip-item">category item</span><span class="chip chip-B">B</span><span class="chip chip-C">C</span><span class="chip chip-X">answer item</span></div>
+        <ol class="predictions" id="predictions"></ol>
+        <details class="sample-detail" open>
+          <summary>B and C rank by block at this token (top 20)</summary>
+          <div id="rank-table"></div>
+        </details>
+      </aside>
+    </div>
+
+    <section class="panel evidence" id="design-panel"><p class="kicker">Design · frozen before reports</p><div id="design"></div></section>
+    <section class="panel evidence" id="swap-panel"><p class="kicker">v3 swap stage · fp32 · original run</p><div id="swap"></div></section>
+    <section class="panel evidence" id="v5-panel"><p class="kicker">v5 scaffolds · bf16 · free naming 1</p><div id="v5"></div></section>
+
+    <section class="method panel">
+      <div>
+        <p class="kicker">Readout</p>
+        <p>J++ lens (koayon/jpp-lenses, qwen3.6-27b) top 20 tokens by log-probability at blocks 40–54, excluding tokens with no letter or digit. Category items are the frozen judge labels (gpt-5.4-mini) with the v3 synonym map. The v3 readout block is 53 and K = 10.</p>
+      </div>
+      <div>
+        <p class="kicker">Edits</p>
+        <p>Swap: the B and C lens coordinates are exchanged at α = 4 over blocks 48–53 on the last five prompt tokens. Control: a random direction orthogonal to both, matched in norm. Δ = log p(C) − log p(B) at the position just before the answer item, with the answer teacher-forced.</p>
+      </div>
+      <div>
+        <p class="kicker">Reports</p>
+        <p>Report tags: <b>C</b> and <b>B</b> are the two competitors; <b>X</b> means the report named an item the answer already named. Labels are the frozen v3 judge labels; v5 reports come from the bf16 rerun with the original answer teacher-forced.</p>
+      </div>
+      <div>
+        <p class="kicker">Exactness</p>
+        <p>Token strings are the saved prompt and answer ids, decoded one token at a time. Nothing is regenerated on this page.</p>
+      </div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -318,7 +318,7 @@ page = f'''<!doctype html>
   <h1>Introspection v3: Natural-recommendation swap</h1>
   <p class="byline">Qwen3.6-27B · J++ lens · October 2026 <span class="tag">{S["tag"]}</span></p>
   <p class="thanks">The model answers an ordinary recommendation request; we read the lens just before it answers, find the <em>other</em> items represented there (competitors),
-  and later ask the model about them, swapping two competitors without changing its answer. Design: <a href="v3-protocol.html">protocol v3</a>.</p>
+  and later ask the model about them, swapping two competitors without changing its answer. Design: <a href="v3-protocol.html">protocol v3</a>. Per-situation token readouts and every report: <a href="v3-readouts/">v3 readouts dashboard</a>.</p>
   <details class="toc-mobile"><summary>Contents</summary>{toc_html}</details>
 </header>
 <div class="answer"><span class="answer-tag">{S["summary_tag"]}</span><ul>{"".join(f"<li>{b}</li>" for b in S["summary"])}</ul></div>
