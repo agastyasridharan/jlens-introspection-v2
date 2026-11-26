@@ -1,6 +1,6 @@
 {
  "tag": "Steps 0–8 done",
- "updated": "2026-11-25 20:13 ET",
+ "updated": "2026-11-26 04:36 ET",
  "log": [
   {
    "t": "Oct 25, 13:11 ET",
@@ -37,6 +37,10 @@
   {
    "t": "Nov 25, 20:20 ET",
    "text": "Loose recognition added: options span the trial’s ranked lens list (top, two random middle, bottom); same question, orders, modes and fp32 state as strict recognition, run on 2 RunPod H200s (160/160 original strict answers reproduced). Added a no-hold control (same menus, setting only) for both menus. Loose top-item picks 69.4% after the hold vs 66.2% with no hold; strict 43.2% vs 40.7%."
+  },
+  {
+   "t": "Nov 25, 22:05 ET",
+   "text": "Causal test with in-lens pairs: same 120 situations and edit as step 8, B taken from the trial’s own ranked lens list (last or median rank). Controls: non-reference swap with the closest rank gap, and a random direction orthogonal to both lens directions, norm-matched per token. Added measure 4, the change in log P(B) − log P(A), from teacher-forced name log-probabilities and answer-letter probabilities. Run on 2 RunPod H200s in fp32; all 1,560 copies are token-identical."
   }
  ],
  "thanks": "Qwen3.6-27B is asked to silently choose a grocery item, animal, or country for a setting and keep it in mind while copying a neutral sentence. We read the J++ lens at every copied token, then ask the model (in separate branches) which item it was keeping in mind. Design: <a href=\"protocol.html\">protocol v2</a>. Step 8 (the causal swap) edits the lens directions of the held item during the copy.",
@@ -52,7 +56,8 @@
   "<b>Step 8 (causal swap): editing the held item&#8217;s lens direction removes it from the report but never installs the swapped-in item.</b> Over 120 situations, the report names A in 20% after the swap vs 32.5% after a norm-matched random control (&minus;12.5 pp [&minus;18.3, &minus;6.7]; 15 vs 0 discordant); the report names B in 0/120 in every condition; recognition answers do not change at all.",
   "<b>The swap acts mainly as A-suppression</b>: before the edit the hidden state sits near zero on v<sub>A</sub> and well below zero on v<sub>B</sub>, so exchanging the coordinates lowers A and barely raises B.",
   "<b>The lens readout varies strongly across copied positions</b> (the reference is the positional winner at only 12% of positions; ~5 distinct winners per trial). Agreement is higher in stable trials (38% vs 25–27%), but counting any positional winner as a match does not raise agreement above its own chance level, so averaging is not hiding a better reference.",
-  "<b>Caveat:</b> the swap shows the report depends on the A direction during the hold phase, but not that the model reads out an arbitrary installed item; the setting is still in context, so lens and report could both follow the setting."
+  "<b>Caveat:</b> the swap shows the report depends on the A direction during the hold phase, but not that the model reads out an arbitrary installed item; the setting is still in context, so lens and report could both follow the setting.",
+  "<b>In-lens swaps (step 8b, added Nov 25):</b> swapping the top lens item A with the weakest or median lens item B lowers free naming of A (32% → 18–22%) and shifts the free-report log-probability margin toward B by +0.5 to +1.3 nats, while neither control moves it. B is never named, and recognition never changes. A non-reference swap shifts its own pair by a similar amount, so the effect follows whichever items are edited rather than singling out the reference item."
  ],
  "status": [
   {
@@ -103,6 +108,11 @@
   {
    "step": "+",
    "what": "Position-stability analysis of the lens readout (not in protocol)",
+   "status": "done"
+  },
+  {
+   "step": "8b",
+   "what": "Causal test with in-lens pairs (strongest–weakest, strongest–median; non-reference swap and matched random controls; α = 1, 2; log-probability margin)",
    "status": "done"
   }
  ],
@@ -1034,7 +1044,647 @@
    "ymax": 100,
    "ytitle": "Share of picks (per option)"
   },
-  "chart-loosetier_chance": 25
+  "chart-loosetier_chance": 25,
+  "chart-swap2sw": {
+   "groups": [
+    "No edit",
+    "Swap, α = 1",
+    "Non-reference swap, α = 1",
+    "Random perturbation, α = 1",
+    "Swap, α = 2",
+    "Non-reference swap, α = 2",
+    "Random perturbation, α = 2"
+   ],
+   "series": [
+    {
+     "name": "Names A (top item)",
+     "color": "#235fa6",
+     "y": [
+      32.5,
+      20.0,
+      35.833333333333336,
+      32.5,
+      18.333333333333332,
+      34.166666666666664,
+      33.33333333333333
+     ],
+     "lo": [
+      24.775726408835432,
+      13.824380919983048,
+      27.81594371658861,
+      24.775726408835432,
+      12.430210244218538,
+      26.290306359700033,
+      25.5316102227993
+     ],
+     "hi": [
+      41.309983078122116,
+      28.03683534337273,
+      44.729630629996066,
+      41.309983078122116,
+      26.201073589323663,
+      43.025335557071074,
+      42.16906547906502
+     ],
+     "n": [
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120
+     ]
+    },
+    {
+     "name": "Names B (swap partner)",
+     "color": "#b0702a",
+     "y": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "lo": [
+      -3.469446951953614e-16,
+      -3.469446951953614e-16,
+      -3.469446951953614e-16,
+      -3.469446951953614e-16,
+      -3.469446951953614e-16,
+      -3.469446951953614e-16,
+      -3.469446951953614e-16
+     ],
+     "hi": [
+      3.1020271055929514,
+      3.1020271055929514,
+      3.1020271055929514,
+      3.1020271055929514,
+      3.1020271055929514,
+      3.1020271055929514,
+      3.1020271055929514
+     ],
+     "n": [
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120
+     ]
+    },
+    {
+     "name": "Differs from no-edit report",
+     "color": "#2f8a57",
+     "y": [
+      0.0,
+      14.166666666666666,
+      7.5,
+      0.8333333333333334,
+      15.833333333333332,
+      10.833333333333334,
+      2.5
+     ],
+     "lo": [
+      -3.469446951953614e-16,
+      9.03680403159196,
+      3.9956662006448735,
+      0.1472517830674952,
+      10.376896007675636,
+      6.44107989410726,
+      0.853802009878548
+     ],
+     "hi": [
+      3.1020271055929514,
+      21.519648727416325,
+      13.641056839109137,
+      4.5697415374322405,
+      23.40948918114622,
+      17.65550800527389,
+      7.0931237404347565
+     ],
+     "n": [
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120
+     ]
+    }
+   ],
+   "ymax": 100,
+   "ytitle": "Share of situations"
+  },
+  "chart-swap2swr": {
+   "groups": [
+    "No edit",
+    "Swap, α = 1",
+    "Non-reference swap, α = 1",
+    "Random perturbation, α = 1",
+    "Swap, α = 2",
+    "Non-reference swap, α = 2",
+    "Random perturbation, α = 2"
+   ],
+   "series": [
+    {
+     "name": "Picks A",
+     "color": "#235fa6",
+     "y": [
+      59.166666666666664,
+      59.583333333333336,
+      59.166666666666664,
+      59.166666666666664,
+      59.166666666666664,
+      59.166666666666664,
+      59.166666666666664
+     ],
+     "lo": [
+      59.166666666666664,
+      59.583333333333336,
+      59.166666666666664,
+      59.166666666666664,
+      59.166666666666664,
+      59.166666666666664,
+      59.166666666666664
+     ],
+     "hi": [
+      59.166666666666664,
+      59.583333333333336,
+      59.166666666666664,
+      59.166666666666664,
+      59.166666666666664,
+      59.166666666666664,
+      59.166666666666664
+     ]
+    },
+    {
+     "name": "Picks B",
+     "color": "#b0702a",
+     "y": [
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333
+     ],
+     "lo": [
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333
+     ],
+     "hi": [
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333,
+      7.083333333333333
+     ]
+    },
+    {
+     "name": "Picks a non-reference item",
+     "color": "#9a8f80",
+     "y": [
+      33.75,
+      33.33333333333333,
+      33.75,
+      33.75,
+      33.75,
+      33.75,
+      33.75
+     ],
+     "lo": [
+      33.75,
+      33.33333333333333,
+      33.75,
+      33.75,
+      33.75,
+      33.75,
+      33.75
+     ],
+     "hi": [
+      33.75,
+      33.33333333333333,
+      33.75,
+      33.75,
+      33.75,
+      33.75,
+      33.75
+     ]
+    }
+   ],
+   "ymax": 100,
+   "ytitle": "Share of recognition answers"
+  },
+  "chart-swap2sm": {
+   "groups": [
+    "No edit",
+    "Swap, α = 1",
+    "Non-reference swap, α = 1",
+    "Random perturbation, α = 1",
+    "Swap, α = 2",
+    "Non-reference swap, α = 2",
+    "Random perturbation, α = 2"
+   ],
+   "series": [
+    {
+     "name": "Names A (top item)",
+     "color": "#235fa6",
+     "y": [
+      32.5,
+      21.666666666666668,
+      34.166666666666664,
+      33.33333333333333,
+      20.0,
+      35.0,
+      33.33333333333333
+     ],
+     "lo": [
+      24.775726408835432,
+      15.236622842757383,
+      26.290306359700033,
+      25.5316102227993,
+      13.824380919983048,
+      27.051765896559278,
+      25.5316102227993
+     ],
+     "hi": [
+      41.309983078122116,
+      29.85452585041196,
+      43.025335557071074,
+      42.16906547906502,
+      28.03683534337273,
+      43.87884223511861,
+      42.16906547906502
+     ],
+     "n": [
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120
+     ]
+    },
+    {
+     "name": "Names B (swap partner)",
+     "color": "#b0702a",
+     "y": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "lo": [
+      -3.469446951953614e-16,
+      -3.469446951953614e-16,
+      -3.469446951953614e-16,
+      -3.469446951953614e-16,
+      -3.469446951953614e-16,
+      -3.469446951953614e-16,
+      -3.469446951953614e-16
+     ],
+     "hi": [
+      3.1020271055929514,
+      3.1020271055929514,
+      3.1020271055929514,
+      3.1020271055929514,
+      3.1020271055929514,
+      3.1020271055929514,
+      3.1020271055929514
+     ],
+     "n": [
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120
+     ]
+    },
+    {
+     "name": "Differs from no-edit report",
+     "color": "#2f8a57",
+     "y": [
+      0.0,
+      10.833333333333334,
+      5.0,
+      0.8333333333333334,
+      13.333333333333334,
+      12.5,
+      0.8333333333333334
+     ],
+     "lo": [
+      -3.469446951953614e-16,
+      6.44107989410726,
+      2.3114049304474236,
+      0.1472517830674952,
+      8.37653717755315,
+      7.723428880969682,
+      0.1472517830674952
+     ],
+     "hi": [
+      3.1020271055929514,
+      17.65550800527389,
+      10.480419464586234,
+      4.5697415374322405,
+      20.56494936654835,
+      19.603091448225033,
+      4.5697415374322405
+     ],
+     "n": [
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120
+     ]
+    }
+   ],
+   "ymax": 100,
+   "ytitle": "Share of situations"
+  },
+  "chart-swap2smr": {
+   "groups": [
+    "No edit",
+    "Swap, α = 1",
+    "Non-reference swap, α = 1",
+    "Random perturbation, α = 1",
+    "Swap, α = 2",
+    "Non-reference swap, α = 2",
+    "Random perturbation, α = 2"
+   ],
+   "series": [
+    {
+     "name": "Picks A",
+     "color": "#235fa6",
+     "y": [
+      58.75,
+      58.75,
+      58.75,
+      58.75,
+      58.75,
+      58.75,
+      58.75
+     ],
+     "lo": [
+      58.75,
+      58.75,
+      58.75,
+      58.75,
+      58.75,
+      58.75,
+      58.75
+     ],
+     "hi": [
+      58.75,
+      58.75,
+      58.75,
+      58.75,
+      58.75,
+      58.75,
+      58.75
+     ]
+    },
+    {
+     "name": "Picks B",
+     "color": "#b0702a",
+     "y": [
+      7.5,
+      7.5,
+      7.5,
+      7.5,
+      7.5,
+      7.5,
+      7.5
+     ],
+     "lo": [
+      7.5,
+      7.5,
+      7.5,
+      7.5,
+      7.5,
+      7.5,
+      7.5
+     ],
+     "hi": [
+      7.5,
+      7.5,
+      7.5,
+      7.5,
+      7.5,
+      7.5,
+      7.5
+     ]
+    },
+    {
+     "name": "Picks a non-reference item",
+     "color": "#9a8f80",
+     "y": [
+      33.75,
+      33.75,
+      33.75,
+      33.75,
+      33.75,
+      33.75,
+      33.75
+     ],
+     "lo": [
+      33.75,
+      33.75,
+      33.75,
+      33.75,
+      33.75,
+      33.75,
+      33.75
+     ],
+     "hi": [
+      33.75,
+      33.75,
+      33.75,
+      33.75,
+      33.75,
+      33.75,
+      33.75
+     ]
+    }
+   ],
+   "ymax": 100,
+   "ytitle": "Share of recognition answers"
+  },
+  "chart-swap2swd": {
+   "groups": [
+    "Free naming, α = 1",
+    "Free naming, α = 2",
+    "Recognition, α = 1",
+    "Recognition, α = 2"
+   ],
+   "ytitle": "Δ margin, B over A (nats)",
+   "series": [
+    {
+     "name": "Swap",
+     "color": "#235fa6",
+     "y": [
+      0.6640435120681407,
+      1.3028343420559394,
+      -0.0002167312615098213,
+      -0.000789068935146676
+     ],
+     "lo": [
+      0.5597111602720422,
+      1.1135586791458219,
+      -0.0008635082107931781,
+      -0.0020200413879503777
+     ],
+     "hi": [
+      0.7768130783628036,
+      1.5042648308758892,
+      0.00043407392487257906,
+      0.000496112388890935
+     ]
+    },
+    {
+     "name": "Non-reference swap",
+     "color": "#b0702a",
+     "y": [
+      0.015255051681682138,
+      0.04099155121803051,
+      -0.00044037616304009225,
+      -0.0009861915004310046
+     ],
+     "lo": [
+      -0.010683325323028233,
+      -0.002967383101790801,
+      -0.0008588439578609085,
+      -0.001765971865358725
+     ],
+     "hi": [
+      0.050717426857598474,
+      0.09878416292934615,
+      -2.6470689113843187e-05,
+      -0.00022258601164683924
+     ]
+    },
+    {
+     "name": "Random perturbation",
+     "color": "#9a8f80",
+     "y": [
+      -0.0013601306764030596,
+      0.0004366815607378764,
+      -1.3916781409350117e-05,
+      -8.552239757521155e-05
+     ],
+     "lo": [
+      -0.010389201247500448,
+      -0.01793604838004133,
+      -0.0003867473820175208,
+      -0.000823365595904403
+     ],
+     "hi": [
+      0.006803380611204372,
+      0.01707761384699399,
+      0.00034666946014210256,
+      0.0006643448196507324
+     ]
+    }
+   ]
+  },
+  "chart-swap2smd": {
+   "groups": [
+    "Free naming, α = 1",
+    "Free naming, α = 2",
+    "Recognition, α = 1",
+    "Recognition, α = 2"
+   ],
+   "ytitle": "Δ margin, B over A (nats)",
+   "series": [
+    {
+     "name": "Swap",
+     "color": "#235fa6",
+     "y": [
+      0.5120981776394425,
+      1.0852686929509219,
+      0.00029063748326672303,
+      0.00021897938024704745
+     ],
+     "lo": [
+      0.430860447345652,
+      0.9176748071321283,
+      -0.00011088270555330446,
+      -0.0005211573102454313
+     ],
+     "hi": [
+      0.599281068228535,
+      1.2639564579167986,
+      0.0006790992921560749,
+      0.0009540086449200823
+     ]
+    },
+    {
+     "name": "Non-reference swap",
+     "color": "#b0702a",
+     "y": [
+      0.004298420418793588,
+      0.017568995946142727,
+      -6.764917516745757e-06,
+      9.956923393054928e-06
+     ],
+     "lo": [
+      -0.012852157985885241,
+      -0.012482409811267038,
+      -0.00035574855296176684,
+      -0.0006905234724731957
+     ],
+     "hi": [
+      0.023642596044225334,
+      0.05185636286363508,
+      0.0003151928399240648,
+      0.0006621950688372221
+     ]
+    },
+    {
+     "name": "Random perturbation",
+     "color": "#9a8f80",
+     "y": [
+      0.0012714309247409499,
+      0.003883916182409545,
+      -0.00015727844072758272,
+      -0.000356250277243772
+     ],
+     "lo": [
+      -0.001960451522296959,
+      -0.0028094070441951166,
+      -0.0004151716451785468,
+      -0.0008897020077719038
+     ],
+     "hi": [
+      0.0046202968997143485,
+      0.010453465053644017,
+      9.162716661682785e-05,
+      0.00014528117061119225
+     ]
+    }
+   ]
+  }
  },
  "judge_html": "<p>Judge: <code>gpt-5.4-mini-2026-03-17</code>, reasoning off, temperature 0, strict JSON schema, one input per call. Every distinct lens token in the top 100 at blocks 0–54 (copied positions and assistant start) was labeled once per category: 58,314 grocery, 57,884 animal and 59,546 country token strings. Free-naming answers: 183 distinct strings.</p><div class=\"table-wrap\"><table><thead><tr><th>Check</th><th>Sample</th><th>Agreement</th><th>Criterion</th><th>Result</th></tr></thead><tbody><tr><td>Token labels, uniform random</td><td>200</td><td>197/200 (98.5%)</td><td>≥95%</td><td><span class=\"pill pass\">pass</span></td></tr><tr><td>Report labels, uniform random</td><td>100</td><td>98/100 (98%)</td><td>≥95%</td><td><span class=\"pill pass\">pass</span></td></tr><tr><td>Rerun on 200 inputs (100 uniform + 100 non-None)</td><td>200</td><td>192/200 identical; 199/200 on the final primary (Item) label</td><td>identical</td><td><span class=\"pill partial\">amended</span></td></tr><tr><td>Extra: non-None token labels only</td><td>100</td><td>Items ≈ 46/50; Fragments ≈ 34/47</td><td>(not in protocol)</td><td><span class=\"pill partial\">Fragments noisy</span></td></tr></tbody></table><p class=\"table-note\">Hand-checks were done by Claude, not a human. Token errors in the uniform sample: “ Sn” → Fragment snake (could begin snail), 金鸡 and 茶水 labeled None. Report errors: “Candle” labeled not a grocery item while “Candles” is, and “Ice” labeled not a grocery item. Outside the sample we also saw “Robin” labeled not an animal. Item errors in the extra sample: “ mew” → cat, “ Finn” → finn, “paste”, “ MG” → Madagascar. All sampled labels are in <code>judge_validation_samples.json</code>.</p></div><p><b>Amendments (2026-10-25, before the main analysis).</b> (1) <i>Determinism.</i> The OpenAI API is not bit-deterministic at temperature 0: 8/200 rerun labels changed, 7 of them Fragment↔None or a Fragment’s item, and one primary label (“ mew”: cat vs mew). Every analysis uses the single cached label per input, so results are reproducible from the frozen cache. (2) <i>Class words.</i> The judge sometimes labels the class words that its own prompt lists as None (bird, fish, insect, and translations such as 鸟, рыба) as Items. We enforce the prompt’s list on the judge’s canonical name (44 token strings affected; the readout block and K are unchanged). (3) <i>Synonym merging.</i> A single merge call over the full name list over-grouped (lion←tiger, lemon←lime, salmon←trout). We now have the judge propose groups and then confirm each (name, canonical) pair in a separate call; only confirmed pairs merge. The merge step uses low reasoning effort (temperature is not available with reasoning) and is run once and frozen. Preliminary merges: almonds→almond, beans→bean, pancakes→pancake, whisky→whiskey, weiner→wiener, bunny→rabbit, seagull→gull, serpent→snake, burma→myanmar.</p>",
  "hold": {
@@ -2658,6 +3308,675 @@
     "ytitle": "Share of picks (per option)"
    },
    "chart-loosetier_chance": 25
+  }
+ },
+ "swap2": {
+  "intro": "<p>Step 8 swapped the lens reference item A with a random category item B that the lens did <em>not</em> show. Here B comes from the same trial&#8217;s own lens list, so both swapped items are represented in the earlier state. The list is the one used for strict and loose recognition: every judge-labeled item in the J++ top 100 at block 54 at any copied position, ranked by baseline-corrected score (median 41 items in these 120 situations).</p><ul><li><b>Strongest–weakest:</b> swap rank 1 (A) with the last rank (B).</li><li><b>Strongest–median:</b> swap rank 1 (A) with the median rank, (n+1)/2 rounded down (B).</li></ul><p>Two controls for each pairing:</p><ul><li><b>Non-reference swap.</b> Swap two items C and D, neither of them A or B, whose rank gap is as close as possible to the main pair&#8217;s gap (ties go to the pair nearest the top). If the report is sensitive to the reference item specifically, this swap should change it less.</li><li><b>Random perturbation.</b> Add a fixed random unit direction orthogonal to both lens directions of A and B, scaled at every edited token to the norm of the main swap at that token. If the report changes because any edit of that size disrupts the state, this control should change it as much.</li></ul><p>Everything else is step 8: the same 120 situations, the edit h &larr; h + α·V(σ(c) &minus; c) at block 54 on every copied token, α = 1 and 2, then the condition-2 free-naming question and a recognition question. The recognition menu is the four items involved in the pairing (A, B, C, D), shuffled once with a fixed seed, in two orders, answer required. <p><b>Measures</b>, for each edit: (1) share of situations whose free report names A; (2) share naming B; (3) share whose report differs from the unedited run; (4) the change in the log-probability margin of B over A, Δ = [log P(B) − log P(A)]<sub>edited</sub> − [log P(B) − log P(A)]<sub>unedited</sub>. For free naming, P is the teacher-forced probability of the item&#8217;s name as the reply; for recognition, the probability of the item&#8217;s answer letter. If the report reads the earlier state, the swap should lower (1), raise (2) and give a positive Δ, each more than both controls.</p><p>Example (m-grocery-069, 61 ranked items): strongest–weakest swaps bread and light bulb, with apple and lamb as the non-reference pair.</p>",
+  "answer": "<div class=\"answer\"><span class=\"answer-tag\">Result</span><ul><li><b>(1) The swap lowers naming of A relative to both controls.</b> With the strongest–weakest pair, A is named in 20% (α = 1) and 18% (α = 2) of situations, against 32% unedited, 36%/34% after the non-reference swap and 32%/33% after the random perturbation. Every discordant situation goes the same way (swap vs non-reference at α = 2: 19 lose A under the swap only, 0 the other way; McNemar p &lt; 0.001). Strongest–median is similar (20% vs 35% and 33% at α = 2).</li><li><b>(2) B is never named:</b> 0 of 120 situations, in every condition and both pairings.</li><li><b>(3) Changed reports:</b> the swap changes the report in 16% (strongest–weakest, α = 2) vs 2% under the random perturbation, but the non-reference swap changes it nearly as often (11%; difference not significant at either strength or pairing).</li><li><b>(4) The free-naming margin moves toward B.</b> Δ = +0.66 and +1.30 nats (strongest–weakest, α = 1 and 2), +0.51 and +1.09 (strongest–median), positive in about 92% of situations; both controls stay within ±0.05. About half of the shift is A losing probability and half is B gaining it (strongest–weakest, α = 2: log P(A) -0.56, log P(B) +0.75). B starts so far below A (median log-probability -9.4 vs -2.3) that this shift never makes B the answer.</li><li><b>Recognition does not move.</b> Across 120 situations × 12 edits, one situation changes one recognition answer (strongest–weakest swap, α = 1); the letter-probability margin moves by less than 0.002 nats on average under every edit.</li><li><b>The effect follows the edited items, not the reference item.</b> The non-reference swap shifts its own pair just as much: log P(D) − log P(C) changes by +1.23 nats (strongest–weakest, α = 2), while leaving the A–B margin at +0.04. Swapping any two lens items moves the free-report probabilities of those two items. It changes which item is named mostly when one of them is A, because A is the item the model usually names.</li></ul></div>",
+  "dec_table": "<div class=\"table-wrap\"><p class=\"table-cap\"><b>Free naming, item by item:</b> mean change in the teacher-forced log-probability of each item&#8217;s name, edited minus unedited (nats). Unedited medians, strongest–weakest: A -2.3, B -9.4, C -4.1, D -9.5. Unedited medians, strongest–median: A -2.3, B -7.6, C -4.1, D -7.8.</p><table class=\"\"><thead><tr><th>Pairing</th><th>Condition</th><th>Δ log P(A)</th><th>Δ log P(B)</th><th>Δ log P(C)</th><th>Δ log P(D)</th></tr></thead><tbody><tr><td>Strongest–weakest</td><td>Swap, α = 1</td><td>-0.33</td><td>+0.34</td><td>+0.04</td><td>+0.05</td></tr><tr><td>Strongest–weakest</td><td>Non-reference swap, α = 1</td><td>+0.00</td><td>+0.02</td><td>-0.29</td><td>+0.29</td></tr><tr><td>Strongest–weakest</td><td>Random perturbation, α = 1</td><td>+0.00</td><td>+0.00</td><td>+0.00</td><td>+0.01</td></tr><tr><td>Strongest–weakest</td><td>Swap, α = 2</td><td>-0.56</td><td>+0.75</td><td>+0.05</td><td>+0.09</td></tr><tr><td>Strongest–weakest</td><td>Non-reference swap, α = 2</td><td>-0.01</td><td>+0.03</td><td>-0.50</td><td>+0.73</td></tr><tr><td>Strongest–weakest</td><td>Random perturbation, α = 2</td><td>+0.00</td><td>+0.00</td><td>-0.01</td><td>+0.02</td></tr><tr><td>Strongest–median</td><td>Swap, α = 1</td><td>-0.19</td><td>+0.32</td><td>+0.02</td><td>+0.03</td></tr><tr><td>Strongest–median</td><td>Non-reference swap, α = 1</td><td>+0.01</td><td>+0.02</td><td>-0.20</td><td>+0.24</td></tr><tr><td>Strongest–median</td><td>Random perturbation, α = 1</td><td>+0.00</td><td>+0.00</td><td>+0.00</td><td>+0.00</td></tr><tr><td>Strongest–median</td><td>Swap, α = 2</td><td>-0.35</td><td>+0.73</td><td>+0.04</td><td>+0.04</td></tr><tr><td>Strongest–median</td><td>Non-reference swap, α = 2</td><td>+0.01</td><td>+0.03</td><td>-0.37</td><td>+0.58</td></tr><tr><td>Strongest–median</td><td>Random perturbation, α = 2</td><td>+0.00</td><td>+0.00</td><td>-0.01</td><td>+0.00</td></tr></tbody></table></div>",
+  "note": "120 situations; 95% Wilson intervals over valid situations. “Differs” compares the judged item with the unedited report.",
+  "rnote": "Answer required, two option orders per situation. Bars: share of answers picking A, B, or either non-reference item (C or D; chance 50% for the pair).",
+  "dnote": "Mean over situations of the edited-minus-unedited change in log P(B) − log P(A); 95% bootstrap CI. Positive = toward B.",
+  "captions": {
+   "sw": "<b>Figure 7.1.</b> Strongest–weakest, α = 2: the report names A in 18% after the swap, 34% after the non-reference swap and 33% after the random perturbation (32% unedited). It names B in 0%, 0% and 0%.",
+   "sm": "<b>Figure 7.4.</b> Strongest–median, α = 2: the report names A in 20% after the swap, 35% after the non-reference swap and 33% after the random perturbation (32% unedited). It names B in 0%, 0% and 0%."
+  },
+  "rcaptions": {
+   "sw": "<b>Figure 7.2.</b> Strongest–weakest, α = 2: recognition picks A in 59% of answers after the swap (59% unedited) and B in 7% (7% unedited).",
+   "sm": "<b>Figure 7.5.</b> Strongest–median, α = 2: recognition picks A in 59% of answers after the swap (59% unedited) and B in 8% (8% unedited)."
+  },
+  "dcaptions": {
+   "sw": "<b>Figure 7.3.</b> Strongest–weakest, α = 2: the swap shifts the free-naming margin toward B by +1.30 nats on average (+0.04 for the non-reference swap, +0.00 for the random perturbation) and the recognition margin by 0.00 nats.",
+   "sm": "<b>Figure 7.6.</b> Strongest–median, α = 2: the swap shifts the free-naming margin toward B by +1.09 nats on average (+0.02 for the non-reference swap, +0.00 for the random perturbation) and the recognition margin by 0.00 nats."
+  },
+  "delta_table": "<div class=\"table-wrap\"><p class=\"table-cap\"><b>Measure 4: Δ = [log P(B) − log P(A)]<sub>edited</sub> − [log P(B) − log P(A)]<sub>unedited</sub></b>, in nats, mean over situations [95% bootstrap CI]. Positive Δ means the edit moved the report toward B and away from A.</p><table class=\"\"><thead><tr><th>Pairing</th><th>Report</th><th>Strength</th><th>Swap (A ↔ B)</th><th>Non-reference swap (C ↔ D)</th><th>Random perturbation</th><th>Non-reference swap, its own margin log P(D) − log P(C)</th></tr></thead><tbody><tr><td>Strongest–weakest</td><td>Free naming</td><td>α = 1</td><td>+0.66 [+0.56, +0.78]<br><span class=\"sub\">median +0.56; &gt; 0 in 92%</span></td><td>+0.02 [-0.01, +0.05]<br><span class=\"sub\">median +0.00; &gt; 0 in 49%</span></td><td>+0.00 [-0.01, +0.01]<br><span class=\"sub\">median +0.00; &gt; 0 in 51%</span></td><td>+0.57 [+0.49, +0.66]</td></tr><tr><td>Strongest–weakest</td><td>Free naming</td><td>α = 2</td><td>+1.30 [+1.11, +1.50]<br><span class=\"sub\">median +1.08; &gt; 0 in 92%</span></td><td>+0.04 [+0.00, +0.10]<br><span class=\"sub\">median +0.00; &gt; 0 in 54%</span></td><td>+0.00 [-0.02, +0.02]<br><span class=\"sub\">median +0.00; &gt; 0 in 50%</span></td><td>+1.23 [+1.03, +1.43]</td></tr><tr><td>Strongest–weakest</td><td>Free naming, name + end of turn</td><td>α = 1</td><td>+0.66 [+0.56, +0.78]<br><span class=\"sub\">median +0.56; &gt; 0 in 92%</span></td><td>+0.02 [-0.01, +0.05]<br><span class=\"sub\">median +0.00; &gt; 0 in 49%</span></td><td>+0.00 [-0.01, +0.01]<br><span class=\"sub\">median +0.00; &gt; 0 in 51%</span></td><td>+0.57 [+0.49, +0.67]</td></tr><tr><td>Strongest–weakest</td><td>Free naming, name + end of turn</td><td>α = 2</td><td>+1.30 [+1.11, +1.52]<br><span class=\"sub\">median +1.08; &gt; 0 in 92%</span></td><td>+0.04 [+0.00, +0.10]<br><span class=\"sub\">median +0.00; &gt; 0 in 54%</span></td><td>+0.00 [-0.02, +0.02]<br><span class=\"sub\">median +0.00; &gt; 0 in 50%</span></td><td>+1.23 [+1.03, +1.43]</td></tr><tr><td>Strongest–weakest</td><td>Recognition</td><td>α = 1</td><td>+0.00 [+0.00, +0.00]<br><span class=\"sub\">median +0.00; &gt; 0 in 50%</span></td><td>+0.00 [+0.00, +0.00]<br><span class=\"sub\">median +0.00; &gt; 0 in 42%</span></td><td>+0.00 [+0.00, +0.00]<br><span class=\"sub\">median +0.00; &gt; 0 in 50%</span></td><td>+0.00 [+0.00, +0.00]</td></tr><tr><td>Strongest–weakest</td><td>Recognition</td><td>α = 2</td><td>+0.00 [+0.00, +0.00]<br><span class=\"sub\">median +0.00; &gt; 0 in 49%</span></td><td>+0.00 [+0.00, +0.00]<br><span class=\"sub\">median +0.00; &gt; 0 in 43%</span></td><td>+0.00 [+0.00, +0.00]<br><span class=\"sub\">median +0.00; &gt; 0 in 50%</span></td><td>+0.00 [+0.00, +0.00]</td></tr><tr><td>Strongest–median</td><td>Free naming</td><td>α = 1</td><td>+0.51 [+0.43, +0.60]<br><span class=\"sub\">median +0.40; &gt; 0 in 92%</span></td><td>+0.00 [-0.01, +0.02]<br><span class=\"sub\">median +0.00; &gt; 0 in 55%</span></td><td>+0.00 [+0.00, +0.00]<br><span class=\"sub\">median +0.00; &gt; 0 in 57%</span></td><td>+0.44 [+0.38, +0.51]</td></tr><tr><td>Strongest–median</td><td>Free naming</td><td>α = 2</td><td>+1.09 [+0.92, +1.26]<br><span class=\"sub\">median +0.84; &gt; 0 in 91%</span></td><td>+0.02 [-0.01, +0.05]<br><span class=\"sub\">median +0.00; &gt; 0 in 54%</span></td><td>+0.00 [+0.00, +0.01]<br><span class=\"sub\">median +0.00; &gt; 0 in 55%</span></td><td>+0.95 [+0.80, +1.10]</td></tr><tr><td>Strongest–median</td><td>Free naming, name + end of turn</td><td>α = 1</td><td>+0.51 [+0.43, +0.60]<br><span class=\"sub\">median +0.40; &gt; 0 in 92%</span></td><td>+0.00 [-0.01, +0.02]<br><span class=\"sub\">median +0.00; &gt; 0 in 55%</span></td><td>+0.00 [+0.00, +0.00]<br><span class=\"sub\">median +0.00; &gt; 0 in 56%</span></td><td>+0.44 [+0.38, +0.51]</td></tr><tr><td>Strongest–median</td><td>Free naming, name + end of turn</td><td>α = 2</td><td>+1.09 [+0.92, +1.26]<br><span class=\"sub\">median +0.84; &gt; 0 in 91%</span></td><td>+0.02 [-0.01, +0.05]<br><span class=\"sub\">median +0.00; &gt; 0 in 54%</span></td><td>+0.00 [+0.00, +0.01]<br><span class=\"sub\">median +0.00; &gt; 0 in 54%</span></td><td>+0.95 [+0.81, +1.10]</td></tr><tr><td>Strongest–median</td><td>Recognition</td><td>α = 1</td><td>+0.00 [+0.00, +0.00]<br><span class=\"sub\">median +0.00; &gt; 0 in 56%</span></td><td>+0.00 [+0.00, +0.00]<br><span class=\"sub\">median +0.00; &gt; 0 in 52%</span></td><td>+0.00 [+0.00, +0.00]<br><span class=\"sub\">median +0.00; &gt; 0 in 50%</span></td><td>+0.00 [+0.00, +0.00]</td></tr><tr><td>Strongest–median</td><td>Recognition</td><td>α = 2</td><td>+0.00 [+0.00, +0.00]<br><span class=\"sub\">median +0.00; &gt; 0 in 52%</span></td><td>+0.00 [+0.00, +0.00]<br><span class=\"sub\">median +0.00; &gt; 0 in 51%</span></td><td>+0.00 [+0.00, +0.00]<br><span class=\"sub\">median +0.00; &gt; 0 in 51%</span></td><td>+0.00 [+0.00, +0.00]</td></tr></tbody></table><p class=\"table-note\">Free naming: teacher-forced log-probability of each item&#8217;s name as the opening of the condition-2 reply (the model answers with a bare name, e.g. “Bread”); the second row adds the end-of-turn token after the name, so a name that is only the prefix of another reply is not credited. Recognition: log-probability of the item&#8217;s answer letter, averaged over the two option orders. The last column is the control&#8217;s own pair: D is the lower-ranked item, so positive means D moved up relative to C.</p></div>",
+  "dcomp_table": "<div class=\"table-wrap\"><p class=\"table-cap\"><b>Measure 4, paired by situation:</b> Δ under the swap minus Δ under each control (nats) [95% bootstrap CI], and the share of situations where the swap&#8217;s Δ is larger.</p><table class=\"\"><thead><tr><th>Pairing</th><th>Report</th><th>Strength</th><th>Swap − non-reference swap</th><th>Swap − random perturbation</th></tr></thead><tbody><tr><td>Strongest–weakest</td><td>Free naming</td><td>α = 1</td><td><b>+0.65</b> [+0.55, +0.76]; swap larger in 95%</td><td><b>+0.67</b> [+0.56, +0.78]; swap larger in 93%</td></tr><tr><td>Strongest–weakest</td><td>Free naming</td><td>α = 2</td><td><b>+1.26</b> [+1.08, +1.46]; swap larger in 93%</td><td><b>+1.30</b> [+1.11, +1.50]; swap larger in 92%</td></tr><tr><td>Strongest–weakest</td><td>Free naming, name + end of turn</td><td>α = 1</td><td><b>+0.65</b> [+0.55, +0.76]; swap larger in 95%</td><td><b>+0.67</b> [+0.56, +0.78]; swap larger in 93%</td></tr><tr><td>Strongest–weakest</td><td>Free naming, name + end of turn</td><td>α = 2</td><td><b>+1.26</b> [+1.07, +1.46]; swap larger in 93%</td><td><b>+1.30</b> [+1.11, +1.51]; swap larger in 92%</td></tr><tr><td>Strongest–weakest</td><td>Recognition</td><td>α = 1</td><td><b>+0.00</b> [+0.00, +0.00]; swap larger in 59%</td><td><b>+0.00</b> [+0.00, +0.00]; swap larger in 52%</td></tr><tr><td>Strongest–weakest</td><td>Recognition</td><td>α = 2</td><td><b>+0.00</b> [+0.00, +0.00]; swap larger in 56%</td><td><b>+0.00</b> [+0.00, +0.00]; swap larger in 49%</td></tr><tr><td>Strongest–median</td><td>Free naming</td><td>α = 1</td><td><b>+0.51</b> [+0.43, +0.59]; swap larger in 92%</td><td><b>+0.51</b> [+0.43, +0.60]; swap larger in 91%</td></tr><tr><td>Strongest–median</td><td>Free naming</td><td>α = 2</td><td><b>+1.07</b> [+0.90, +1.24]; swap larger in 91%</td><td><b>+1.08</b> [+0.91, +1.27]; swap larger in 91%</td></tr><tr><td>Strongest–median</td><td>Free naming, name + end of turn</td><td>α = 1</td><td><b>+0.51</b> [+0.43, +0.59]; swap larger in 92%</td><td><b>+0.51</b> [+0.43, +0.59]; swap larger in 91%</td></tr><tr><td>Strongest–median</td><td>Free naming, name + end of turn</td><td>α = 2</td><td><b>+1.07</b> [+0.90, +1.24]; swap larger in 91%</td><td><b>+1.08</b> [+0.91, +1.26]; swap larger in 91%</td></tr><tr><td>Strongest–median</td><td>Recognition</td><td>α = 1</td><td><b>+0.00</b> [+0.00, +0.00]; swap larger in 48%</td><td><b>+0.00</b> [+0.00, +0.00]; swap larger in 60%</td></tr><tr><td>Strongest–median</td><td>Recognition</td><td>α = 2</td><td><b>+0.00</b> [+0.00, +0.00]; swap larger in 48%</td><td><b>+0.00</b> [+0.00, +0.00]; swap larger in 56%</td></tr></tbody></table></div>",
+  "cond_table": "<div class=\"table-wrap\"><p class=\"table-cap\"><b>Outcomes by pairing and condition</b> (120 situations). A = top item, B = its swap partner (bottom or median item), C and D = the non-reference pair.</p><table class=\"\"><thead><tr><th>Pairing</th><th>Condition</th><th>Copy identical</th><th>Edit / ‖h‖</th><th>Names A</th><th>Names B</th><th>Names C or D</th><th>Changed vs no edit</th><th>Recog. A</th><th>Recog. B</th><th>Recog. C or D</th><th>Recog. answer changed</th></tr></thead><tbody><tr><td>Strongest–weakest</td><td>No edit</td><td>120/120</td><td>0.0%</td><td>32.5%</td><td>0.0%</td><td>7.5%</td><td>—</td><td>59.2%</td><td>7.1%</td><td>33.8%</td><td>—</td></tr><tr><td>Strongest–weakest</td><td>Swap, α = 1</td><td>120/120</td><td>3.4%</td><td>20.0%</td><td>0.0%</td><td>12.5%</td><td>14.2%</td><td>59.6%</td><td>7.1%</td><td>33.3%</td><td>0.8%</td></tr><tr><td>Strongest–weakest</td><td>Non-reference swap, α = 1</td><td>120/120</td><td>2.8%</td><td>35.8%</td><td>0.0%</td><td>4.2%</td><td>7.5%</td><td>59.2%</td><td>7.1%</td><td>33.8%</td><td>0.0%</td></tr><tr><td>Strongest–weakest</td><td>Random perturbation, α = 1</td><td>120/120</td><td>3.4%</td><td>32.5%</td><td>0.0%</td><td>7.5%</td><td>0.8%</td><td>59.2%</td><td>7.1%</td><td>33.8%</td><td>0.0%</td></tr><tr><td>Strongest–weakest</td><td>Swap, α = 2</td><td>120/120</td><td>6.8%</td><td>18.3%</td><td>0.0%</td><td>12.5%</td><td>15.8%</td><td>59.2%</td><td>7.1%</td><td>33.8%</td><td>0.0%</td></tr><tr><td>Strongest–weakest</td><td>Non-reference swap, α = 2</td><td>120/120</td><td>5.6%</td><td>34.2%</td><td>0.0%</td><td>4.2%</td><td>10.8%</td><td>59.2%</td><td>7.1%</td><td>33.8%</td><td>0.0%</td></tr><tr><td>Strongest–weakest</td><td>Random perturbation, α = 2</td><td>120/120</td><td>6.8%</td><td>33.3%</td><td>0.0%</td><td>7.5%</td><td>2.5%</td><td>59.2%</td><td>7.1%</td><td>33.8%</td><td>0.0%</td></tr><tr><td>Strongest–median</td><td>No edit</td><td>120/120</td><td>0.0%</td><td>32.5%</td><td>0.0%</td><td>7.5%</td><td>—</td><td>58.8%</td><td>7.5%</td><td>33.8%</td><td>—</td></tr><tr><td>Strongest–median</td><td>Swap, α = 1</td><td>120/120</td><td>2.6%</td><td>21.7%</td><td>0.0%</td><td>11.7%</td><td>10.8%</td><td>58.8%</td><td>7.5%</td><td>33.8%</td><td>0.0%</td></tr><tr><td>Strongest–median</td><td>Non-reference swap, α = 1</td><td>120/120</td><td>2.2%</td><td>34.2%</td><td>0.0%</td><td>5.8%</td><td>5.0%</td><td>58.8%</td><td>7.5%</td><td>33.8%</td><td>0.0%</td></tr><tr><td>Strongest–median</td><td>Random perturbation, α = 1</td><td>120/120</td><td>2.6%</td><td>33.3%</td><td>0.0%</td><td>6.7%</td><td>0.8%</td><td>58.8%</td><td>7.5%</td><td>33.8%</td><td>0.0%</td></tr><tr><td>Strongest–median</td><td>Swap, α = 2</td><td>120/120</td><td>5.1%</td><td>20.0%</td><td>0.0%</td><td>12.5%</td><td>13.3%</td><td>58.8%</td><td>7.5%</td><td>33.8%</td><td>0.0%</td></tr><tr><td>Strongest–median</td><td>Non-reference swap, α = 2</td><td>120/120</td><td>4.4%</td><td>35.0%</td><td>0.0%</td><td>3.3%</td><td>12.5%</td><td>58.8%</td><td>7.5%</td><td>33.8%</td><td>0.0%</td></tr><tr><td>Strongest–median</td><td>Random perturbation, α = 2</td><td>120/120</td><td>5.1%</td><td>33.3%</td><td>0.0%</td><td>6.7%</td><td>0.8%</td><td>58.8%</td><td>7.5%</td><td>33.8%</td><td>0.0%</td></tr></tbody></table><p class=\"table-note\">Free naming is condition 2 (“not mentioned”); a truncated reply counts as naming no item. Recognition: the four items A–D, two orders, answer required.</p></div>",
+  "comp_table": "<div class=\"table-wrap\"><p class=\"table-cap\"><b>Paired comparisons, swap vs each control.</b> Bootstrap over situations (5,000 resamples); exact McNemar test for binary outcomes.</p><table class=\"\"><thead><tr><th>Pairing</th><th>Strength</th><th>Control</th><th>Outcome</th><th>Swap</th><th>Control</th><th>Swap − control (pp) [95% CI]</th><th>Discordant (swap only / control only)</th><th>McNemar p</th></tr></thead><tbody><tr><td>Strongest–weakest</td><td>α = 1</td><td>Non-reference swap</td><td>Names A</td><td>20.0%</td><td>35.8%</td><td><b>-15.8</b> [-22.5, -9.2]</td><td>0 / 19</td><td>&lt;0.001</td></tr><tr><td>Strongest–weakest</td><td>α = 1</td><td>Non-reference swap</td><td>Names B</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>Strongest–weakest</td><td>α = 1</td><td>Non-reference swap</td><td>Report differs from no-edit</td><td>14.2%</td><td>7.5%</td><td><b>+6.7</b> [-1.7, +14.2]</td><td>16 / 8</td><td>0.152</td></tr><tr><td>Strongest–weakest</td><td>α = 1</td><td>Non-reference swap</td><td>Recognition picks A</td><td>59.6%</td><td>59.2%</td><td><b>+0.4</b> [+0.0, +1.2]</td><td>—</td><td>—</td></tr><tr><td>Strongest–weakest</td><td>α = 1</td><td>Non-reference swap</td><td>Recognition picks B</td><td>7.1%</td><td>7.1%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>Strongest–weakest</td><td>α = 1</td><td>Non-reference swap</td><td>Recognition answer changed</td><td>0.8%</td><td>0.0%</td><td><b>+0.8</b> [+0.0, +2.5]</td><td>1 / 0</td><td>1.000</td></tr><tr><td>Strongest–weakest</td><td>α = 1</td><td>Random perturbation</td><td>Names A</td><td>20.0%</td><td>32.5%</td><td><b>-12.5</b> [-19.2, -6.7]</td><td>0 / 15</td><td>&lt;0.001</td></tr><tr><td>Strongest–weakest</td><td>α = 1</td><td>Random perturbation</td><td>Names B</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>Strongest–weakest</td><td>α = 1</td><td>Random perturbation</td><td>Report differs from no-edit</td><td>14.2%</td><td>0.8%</td><td><b>+13.3</b> [+7.5, +20.0]</td><td>17 / 1</td><td>&lt;0.001</td></tr><tr><td>Strongest–weakest</td><td>α = 1</td><td>Random perturbation</td><td>Recognition picks A</td><td>59.6%</td><td>59.2%</td><td><b>+0.4</b> [+0.0, +1.2]</td><td>—</td><td>—</td></tr><tr><td>Strongest–weakest</td><td>α = 1</td><td>Random perturbation</td><td>Recognition picks B</td><td>7.1%</td><td>7.1%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>Strongest–weakest</td><td>α = 1</td><td>Random perturbation</td><td>Recognition answer changed</td><td>0.8%</td><td>0.0%</td><td><b>+0.8</b> [+0.0, +2.5]</td><td>1 / 0</td><td>1.000</td></tr><tr><td>Strongest–weakest</td><td>α = 2</td><td>Non-reference swap</td><td>Names A</td><td>18.3%</td><td>34.2%</td><td><b>-15.8</b> [-22.5, -10.0]</td><td>0 / 19</td><td>&lt;0.001</td></tr><tr><td>Strongest–weakest</td><td>α = 2</td><td>Non-reference swap</td><td>Names B</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>Strongest–weakest</td><td>α = 2</td><td>Non-reference swap</td><td>Report differs from no-edit</td><td>15.8%</td><td>10.8%</td><td><b>+5.0</b> [-3.3, +13.3]</td><td>16 / 10</td><td>0.327</td></tr><tr><td>Strongest–weakest</td><td>α = 2</td><td>Non-reference swap</td><td>Recognition picks A</td><td>59.2%</td><td>59.2%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>Strongest–weakest</td><td>α = 2</td><td>Non-reference swap</td><td>Recognition picks B</td><td>7.1%</td><td>7.1%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>Strongest–weakest</td><td>α = 2</td><td>Non-reference swap</td><td>Recognition answer changed</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>Strongest–weakest</td><td>α = 2</td><td>Random perturbation</td><td>Names A</td><td>18.3%</td><td>33.3%</td><td><b>-15.0</b> [-21.7, -9.2]</td><td>0 / 18</td><td>&lt;0.001</td></tr><tr><td>Strongest–weakest</td><td>α = 2</td><td>Random perturbation</td><td>Names B</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>Strongest–weakest</td><td>α = 2</td><td>Random perturbation</td><td>Report differs from no-edit</td><td>15.8%</td><td>2.5%</td><td><b>+13.3</b> [+6.7, +20.8]</td><td>18 / 2</td><td>&lt;0.001</td></tr><tr><td>Strongest–weakest</td><td>α = 2</td><td>Random perturbation</td><td>Recognition picks A</td><td>59.2%</td><td>59.2%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>Strongest–weakest</td><td>α = 2</td><td>Random perturbation</td><td>Recognition picks B</td><td>7.1%</td><td>7.1%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>Strongest–weakest</td><td>α = 2</td><td>Random perturbation</td><td>Recognition answer changed</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>Strongest–median</td><td>α = 1</td><td>Non-reference swap</td><td>Names A</td><td>21.7%</td><td>34.2%</td><td><b>-12.5</b> [-18.3, -6.7]</td><td>0 / 15</td><td>&lt;0.001</td></tr><tr><td>Strongest–median</td><td>α = 1</td><td>Non-reference swap</td><td>Names B</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>Strongest–median</td><td>α = 1</td><td>Non-reference swap</td><td>Report differs from no-edit</td><td>10.8%</td><td>5.0%</td><td><b>+5.8</b> [+0.0, +12.5]</td><td>11 / 4</td><td>0.118</td></tr><tr><td>Strongest–median</td><td>α = 1</td><td>Non-reference swap</td><td>Recognition picks A</td><td>58.8%</td><td>58.8%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>Strongest–median</td><td>α = 1</td><td>Non-reference swap</td><td>Recognition picks B</td><td>7.5%</td><td>7.5%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>Strongest–median</td><td>α = 1</td><td>Non-reference swap</td><td>Recognition answer changed</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>Strongest–median</td><td>α = 1</td><td>Random perturbation</td><td>Names A</td><td>21.7%</td><td>33.3%</td><td><b>-11.7</b> [-18.3, -6.6]</td><td>0 / 14</td><td>&lt;0.001</td></tr><tr><td>Strongest–median</td><td>α = 1</td><td>Random perturbation</td><td>Names B</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>Strongest–median</td><td>α = 1</td><td>Random perturbation</td><td>Report differs from no-edit</td><td>10.8%</td><td>0.8%</td><td><b>+10.0</b> [+4.2, +15.8]</td><td>13 / 1</td><td>0.002</td></tr><tr><td>Strongest–median</td><td>α = 1</td><td>Random perturbation</td><td>Recognition picks A</td><td>58.8%</td><td>58.8%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>Strongest–median</td><td>α = 1</td><td>Random perturbation</td><td>Recognition picks B</td><td>7.5%</td><td>7.5%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>Strongest–median</td><td>α = 1</td><td>Random perturbation</td><td>Recognition answer changed</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>Strongest–median</td><td>α = 2</td><td>Non-reference swap</td><td>Names A</td><td>20.0%</td><td>35.0%</td><td><b>-15.0</b> [-21.7, -9.2]</td><td>0 / 18</td><td>&lt;0.001</td></tr><tr><td>Strongest–median</td><td>α = 2</td><td>Non-reference swap</td><td>Names B</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>Strongest–median</td><td>α = 2</td><td>Non-reference swap</td><td>Report differs from no-edit</td><td>13.3%</td><td>12.5%</td><td><b>+0.8</b> [-7.5, +9.2]</td><td>13 / 12</td><td>1.000</td></tr><tr><td>Strongest–median</td><td>α = 2</td><td>Non-reference swap</td><td>Recognition picks A</td><td>58.8%</td><td>58.8%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>Strongest–median</td><td>α = 2</td><td>Non-reference swap</td><td>Recognition picks B</td><td>7.5%</td><td>7.5%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>Strongest–median</td><td>α = 2</td><td>Non-reference swap</td><td>Recognition answer changed</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>Strongest–median</td><td>α = 2</td><td>Random perturbation</td><td>Names A</td><td>20.0%</td><td>33.3%</td><td><b>-13.3</b> [-20.0, -7.5]</td><td>0 / 16</td><td>&lt;0.001</td></tr><tr><td>Strongest–median</td><td>α = 2</td><td>Random perturbation</td><td>Names B</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr><tr><td>Strongest–median</td><td>α = 2</td><td>Random perturbation</td><td>Report differs from no-edit</td><td>13.3%</td><td>0.8%</td><td><b>+12.5</b> [+6.7, +19.2]</td><td>16 / 1</td><td>&lt;0.001</td></tr><tr><td>Strongest–median</td><td>α = 2</td><td>Random perturbation</td><td>Recognition picks A</td><td>58.8%</td><td>58.8%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>Strongest–median</td><td>α = 2</td><td>Random perturbation</td><td>Recognition picks B</td><td>7.5%</td><td>7.5%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>—</td><td>—</td></tr><tr><td>Strongest–median</td><td>α = 2</td><td>Random perturbation</td><td>Recognition answer changed</td><td>0.0%</td><td>0.0%</td><td><b>+0.0</b> [+0.0, +0.0]</td><td>0 / 0</td><td>1.000</td></tr></tbody></table></div>",
+  "coord_table": "<div class=\"table-wrap\"><p class=\"table-cap\"><b>Coordinates before the edit</b> at the first copied token (α = 1 runs). c = V<sup>+</sup>h on the unit-normalized lens directions of the two swapped items.</p><table class=\"\"><thead><tr><th>Pairing</th><th>Swapped pair</th><th>Median coordinate, first item</th><th>Median coordinate, second item</th></tr></thead><tbody><tr><td>Strongest–weakest</td><td>A ↔ B</td><td>-0.57</td><td>-1.06</td></tr><tr><td>Strongest–weakest</td><td>C ↔ D</td><td>-0.84</td><td>-1.74</td></tr><tr><td>Strongest–median</td><td>A ↔ B</td><td>-0.24</td><td>-1.63</td></tr><tr><td>Strongest–median</td><td>C ↔ D</td><td>-0.85</td><td>-1.48</td></tr></tbody></table></div>",
+  "examples": "<div class=\"table-wrap\"><p class=\"table-cap\"><b>Reports that changed under the swap</b> (65 situation × pairing × strength cases in all; first 16 shown, raw answers).</p><table class=\"text\"><thead><tr><th>Situation</th><th>Pairing</th><th>Strength</th><th>A / B</th><th>C / D</th><th>No edit</th><th>Swap</th><th>Non-reference swap</th><th>Random</th></tr></thead><tbody><tr><td>m-grocery-158</td><td>Strongest–weakest</td><td>α = 1</td><td>apple / kale</td><td>watermelon / wheat</td><td>Apple</td><td>Watermelon</td><td>Apple</td><td>Apple</td></tr><tr><td>m-grocery-158</td><td>Strongest–weakest</td><td>α = 2</td><td>apple / kale</td><td>watermelon / wheat</td><td>Apple</td><td>Watermelon</td><td>Apple</td><td>Apple</td></tr><tr><td>m-grocery-158</td><td>Strongest–median</td><td>α = 1</td><td>apple / avocado</td><td>watermelon / almond</td><td>Apple</td><td>Watermelon</td><td>Apple</td><td>Apple</td></tr><tr><td>m-grocery-158</td><td>Strongest–median</td><td>α = 2</td><td>apple / avocado</td><td>watermelon / almond</td><td>Apple</td><td>Watermelon</td><td>Apple</td><td>Apple</td></tr><tr><td>m-grocery-146</td><td>Strongest–weakest</td><td>α = 1</td><td>apple / bean</td><td>popcorn / butter</td><td>Apple</td><td>Milk</td><td>Apple</td><td>Apple</td></tr><tr><td>m-grocery-146</td><td>Strongest–weakest</td><td>α = 2</td><td>apple / bean</td><td>popcorn / butter</td><td>Apple</td><td>Milk</td><td>Apple</td><td>Apple</td></tr><tr><td>m-grocery-146</td><td>Strongest–median</td><td>α = 2</td><td>apple / oats</td><td>popcorn / soda</td><td>Apple</td><td>Milk</td><td>Apple</td><td>Apple</td></tr><tr><td>m-grocery-123</td><td>Strongest–weakest</td><td>α = 1</td><td>apple / tea</td><td>bread / onion</td><td>Banana</td><td>Milk</td><td>Banana</td><td>Banana</td></tr><tr><td>m-grocery-123</td><td>Strongest–weakest</td><td>α = 2</td><td>apple / tea</td><td>bread / onion</td><td>Banana</td><td>Milk</td><td>Banana</td><td>Milk</td></tr><tr><td>m-grocery-154</td><td>Strongest–weakest</td><td>α = 1</td><td>apple / coffee</td><td>banana / pear</td><td>Apple</td><td>Banana</td><td>Apple</td><td>Apple</td></tr><tr><td>m-grocery-154</td><td>Strongest–weakest</td><td>α = 2</td><td>apple / coffee</td><td>banana / pear</td><td>Apple</td><td>Banana</td><td>Apple</td><td>Apple</td></tr><tr><td>m-grocery-154</td><td>Strongest–median</td><td>α = 1</td><td>apple / corn</td><td>banana / cabbage</td><td>Apple</td><td>Banana</td><td>Apple</td><td>Apple</td></tr><tr><td>m-grocery-154</td><td>Strongest–median</td><td>α = 2</td><td>apple / corn</td><td>banana / cabbage</td><td>Apple</td><td>Banana</td><td>Apple</td><td>Apple</td></tr><tr><td>m-animal-095</td><td>Strongest–weakest</td><td>α = 1</td><td>owl / parrot</td><td>elephant / earthworm</td><td>Bear</td><td>Elephant</td><td>Bear</td><td>Bear</td></tr><tr><td>m-animal-095</td><td>Strongest–weakest</td><td>α = 2</td><td>owl / parrot</td><td>elephant / earthworm</td><td>Bear</td><td>Elephant</td><td>Bear</td><td>Bear</td></tr><tr><td>m-animal-030</td><td>Strongest–weakest</td><td>α = 2</td><td>cat / doe</td><td>sheep / duck</td><td>Cat</td><td>Owl</td><td>Cat</td><td>Cat</td></tr></tbody></table></div>",
+  "disclosures": "<ul><li><b>Run.</b> Qwen3.6-27B in fp32 with eager attention and greedy decoding on 2 RunPod H200s (not athena02), from the saved v2 prompts. Free reports were labeled by the same judge (gpt-5.4-mini) and cache as the main experiment.</li><li><b>Gap matching.</b> For strongest–median, the non-reference pair has exactly the main pair&#8217;s gap in 120 of 120 situations. For strongest–weakest, no pair that avoids A and B can span the whole list, so the closest pair is ranks 2 and n−1, a gap 2 shorter.</li><li><b>Lens tokens.</b> Each item&#8217;s direction uses its highest-scoring token at block 54 over the copied positions. For weak items this is often a fragment or a token in another script (for example a Chinese word for the item), because that is the form in which the lens shows the item.</li><li><b>No-edit reference.</b> The no-edit run regenerates the original copy and reports; “changed” compares each edited report with it.</li><li>The edit is applied only during the copy; the report question and answer run unedited from the edited cache. Every copy stayed token-identical unless the table says otherwise.</li></ul>",
+  "charts": {
+   "chart-swap2sw": {
+    "groups": [
+     "No edit",
+     "Swap, α = 1",
+     "Non-reference swap, α = 1",
+     "Random perturbation, α = 1",
+     "Swap, α = 2",
+     "Non-reference swap, α = 2",
+     "Random perturbation, α = 2"
+    ],
+    "series": [
+     {
+      "name": "Names A (top item)",
+      "color": "#235fa6",
+      "y": [
+       32.5,
+       20.0,
+       35.833333333333336,
+       32.5,
+       18.333333333333332,
+       34.166666666666664,
+       33.33333333333333
+      ],
+      "lo": [
+       24.775726408835432,
+       13.824380919983048,
+       27.81594371658861,
+       24.775726408835432,
+       12.430210244218538,
+       26.290306359700033,
+       25.5316102227993
+      ],
+      "hi": [
+       41.309983078122116,
+       28.03683534337273,
+       44.729630629996066,
+       41.309983078122116,
+       26.201073589323663,
+       43.025335557071074,
+       42.16906547906502
+      ],
+      "n": [
+       120,
+       120,
+       120,
+       120,
+       120,
+       120,
+       120
+      ]
+     },
+     {
+      "name": "Names B (swap partner)",
+      "color": "#b0702a",
+      "y": [
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "lo": [
+       -3.469446951953614e-16,
+       -3.469446951953614e-16,
+       -3.469446951953614e-16,
+       -3.469446951953614e-16,
+       -3.469446951953614e-16,
+       -3.469446951953614e-16,
+       -3.469446951953614e-16
+      ],
+      "hi": [
+       3.1020271055929514,
+       3.1020271055929514,
+       3.1020271055929514,
+       3.1020271055929514,
+       3.1020271055929514,
+       3.1020271055929514,
+       3.1020271055929514
+      ],
+      "n": [
+       120,
+       120,
+       120,
+       120,
+       120,
+       120,
+       120
+      ]
+     },
+     {
+      "name": "Differs from no-edit report",
+      "color": "#2f8a57",
+      "y": [
+       0.0,
+       14.166666666666666,
+       7.5,
+       0.8333333333333334,
+       15.833333333333332,
+       10.833333333333334,
+       2.5
+      ],
+      "lo": [
+       -3.469446951953614e-16,
+       9.03680403159196,
+       3.9956662006448735,
+       0.1472517830674952,
+       10.376896007675636,
+       6.44107989410726,
+       0.853802009878548
+      ],
+      "hi": [
+       3.1020271055929514,
+       21.519648727416325,
+       13.641056839109137,
+       4.5697415374322405,
+       23.40948918114622,
+       17.65550800527389,
+       7.0931237404347565
+      ],
+      "n": [
+       120,
+       120,
+       120,
+       120,
+       120,
+       120,
+       120
+      ]
+     }
+    ],
+    "ymax": 100,
+    "ytitle": "Share of situations"
+   },
+   "chart-swap2swr": {
+    "groups": [
+     "No edit",
+     "Swap, α = 1",
+     "Non-reference swap, α = 1",
+     "Random perturbation, α = 1",
+     "Swap, α = 2",
+     "Non-reference swap, α = 2",
+     "Random perturbation, α = 2"
+    ],
+    "series": [
+     {
+      "name": "Picks A",
+      "color": "#235fa6",
+      "y": [
+       59.166666666666664,
+       59.583333333333336,
+       59.166666666666664,
+       59.166666666666664,
+       59.166666666666664,
+       59.166666666666664,
+       59.166666666666664
+      ],
+      "lo": [
+       59.166666666666664,
+       59.583333333333336,
+       59.166666666666664,
+       59.166666666666664,
+       59.166666666666664,
+       59.166666666666664,
+       59.166666666666664
+      ],
+      "hi": [
+       59.166666666666664,
+       59.583333333333336,
+       59.166666666666664,
+       59.166666666666664,
+       59.166666666666664,
+       59.166666666666664,
+       59.166666666666664
+      ]
+     },
+     {
+      "name": "Picks B",
+      "color": "#b0702a",
+      "y": [
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333
+      ],
+      "lo": [
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333
+      ],
+      "hi": [
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333,
+       7.083333333333333
+      ]
+     },
+     {
+      "name": "Picks a non-reference item",
+      "color": "#9a8f80",
+      "y": [
+       33.75,
+       33.33333333333333,
+       33.75,
+       33.75,
+       33.75,
+       33.75,
+       33.75
+      ],
+      "lo": [
+       33.75,
+       33.33333333333333,
+       33.75,
+       33.75,
+       33.75,
+       33.75,
+       33.75
+      ],
+      "hi": [
+       33.75,
+       33.33333333333333,
+       33.75,
+       33.75,
+       33.75,
+       33.75,
+       33.75
+      ]
+     }
+    ],
+    "ymax": 100,
+    "ytitle": "Share of recognition answers"
+   },
+   "chart-swap2sm": {
+    "groups": [
+     "No edit",
+     "Swap, α = 1",
+     "Non-reference swap, α = 1",
+     "Random perturbation, α = 1",
+     "Swap, α = 2",
+     "Non-reference swap, α = 2",
+     "Random perturbation, α = 2"
+    ],
+    "series": [
+     {
+      "name": "Names A (top item)",
+      "color": "#235fa6",
+      "y": [
+       32.5,
+       21.666666666666668,
+       34.166666666666664,
+       33.33333333333333,
+       20.0,
+       35.0,
+       33.33333333333333
+      ],
+      "lo": [
+       24.775726408835432,
+       15.236622842757383,
+       26.290306359700033,
+       25.5316102227993,
+       13.824380919983048,
+       27.051765896559278,
+       25.5316102227993
+      ],
+      "hi": [
+       41.309983078122116,
+       29.85452585041196,
+       43.025335557071074,
+       42.16906547906502,
+       28.03683534337273,
+       43.87884223511861,
+       42.16906547906502
+      ],
+      "n": [
+       120,
+       120,
+       120,
+       120,
+       120,
+       120,
+       120
+      ]
+     },
+     {
+      "name": "Names B (swap partner)",
+      "color": "#b0702a",
+      "y": [
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "lo": [
+       -3.469446951953614e-16,
+       -3.469446951953614e-16,
+       -3.469446951953614e-16,
+       -3.469446951953614e-16,
+       -3.469446951953614e-16,
+       -3.469446951953614e-16,
+       -3.469446951953614e-16
+      ],
+      "hi": [
+       3.1020271055929514,
+       3.1020271055929514,
+       3.1020271055929514,
+       3.1020271055929514,
+       3.1020271055929514,
+       3.1020271055929514,
+       3.1020271055929514
+      ],
+      "n": [
+       120,
+       120,
+       120,
+       120,
+       120,
+       120,
+       120
+      ]
+     },
+     {
+      "name": "Differs from no-edit report",
+      "color": "#2f8a57",
+      "y": [
+       0.0,
+       10.833333333333334,
+       5.0,
+       0.8333333333333334,
+       13.333333333333334,
+       12.5,
+       0.8333333333333334
+      ],
+      "lo": [
+       -3.469446951953614e-16,
+       6.44107989410726,
+       2.3114049304474236,
+       0.1472517830674952,
+       8.37653717755315,
+       7.723428880969682,
+       0.1472517830674952
+      ],
+      "hi": [
+       3.1020271055929514,
+       17.65550800527389,
+       10.480419464586234,
+       4.5697415374322405,
+       20.56494936654835,
+       19.603091448225033,
+       4.5697415374322405
+      ],
+      "n": [
+       120,
+       120,
+       120,
+       120,
+       120,
+       120,
+       120
+      ]
+     }
+    ],
+    "ymax": 100,
+    "ytitle": "Share of situations"
+   },
+   "chart-swap2smr": {
+    "groups": [
+     "No edit",
+     "Swap, α = 1",
+     "Non-reference swap, α = 1",
+     "Random perturbation, α = 1",
+     "Swap, α = 2",
+     "Non-reference swap, α = 2",
+     "Random perturbation, α = 2"
+    ],
+    "series": [
+     {
+      "name": "Picks A",
+      "color": "#235fa6",
+      "y": [
+       58.75,
+       58.75,
+       58.75,
+       58.75,
+       58.75,
+       58.75,
+       58.75
+      ],
+      "lo": [
+       58.75,
+       58.75,
+       58.75,
+       58.75,
+       58.75,
+       58.75,
+       58.75
+      ],
+      "hi": [
+       58.75,
+       58.75,
+       58.75,
+       58.75,
+       58.75,
+       58.75,
+       58.75
+      ]
+     },
+     {
+      "name": "Picks B",
+      "color": "#b0702a",
+      "y": [
+       7.5,
+       7.5,
+       7.5,
+       7.5,
+       7.5,
+       7.5,
+       7.5
+      ],
+      "lo": [
+       7.5,
+       7.5,
+       7.5,
+       7.5,
+       7.5,
+       7.5,
+       7.5
+      ],
+      "hi": [
+       7.5,
+       7.5,
+       7.5,
+       7.5,
+       7.5,
+       7.5,
+       7.5
+      ]
+     },
+     {
+      "name": "Picks a non-reference item",
+      "color": "#9a8f80",
+      "y": [
+       33.75,
+       33.75,
+       33.75,
+       33.75,
+       33.75,
+       33.75,
+       33.75
+      ],
+      "lo": [
+       33.75,
+       33.75,
+       33.75,
+       33.75,
+       33.75,
+       33.75,
+       33.75
+      ],
+      "hi": [
+       33.75,
+       33.75,
+       33.75,
+       33.75,
+       33.75,
+       33.75,
+       33.75
+      ]
+     }
+    ],
+    "ymax": 100,
+    "ytitle": "Share of recognition answers"
+   },
+   "chart-swap2swd": {
+    "groups": [
+     "Free naming, α = 1",
+     "Free naming, α = 2",
+     "Recognition, α = 1",
+     "Recognition, α = 2"
+    ],
+    "ytitle": "Δ margin, B over A (nats)",
+    "series": [
+     {
+      "name": "Swap",
+      "color": "#235fa6",
+      "y": [
+       0.6640435120681407,
+       1.3028343420559394,
+       -0.0002167312615098213,
+       -0.000789068935146676
+      ],
+      "lo": [
+       0.5597111602720422,
+       1.1135586791458219,
+       -0.0008635082107931781,
+       -0.0020200413879503777
+      ],
+      "hi": [
+       0.7768130783628036,
+       1.5042648308758892,
+       0.00043407392487257906,
+       0.000496112388890935
+      ]
+     },
+     {
+      "name": "Non-reference swap",
+      "color": "#b0702a",
+      "y": [
+       0.015255051681682138,
+       0.04099155121803051,
+       -0.00044037616304009225,
+       -0.0009861915004310046
+      ],
+      "lo": [
+       -0.010683325323028233,
+       -0.002967383101790801,
+       -0.0008588439578609085,
+       -0.001765971865358725
+      ],
+      "hi": [
+       0.050717426857598474,
+       0.09878416292934615,
+       -2.6470689113843187e-05,
+       -0.00022258601164683924
+      ]
+     },
+     {
+      "name": "Random perturbation",
+      "color": "#9a8f80",
+      "y": [
+       -0.0013601306764030596,
+       0.0004366815607378764,
+       -1.3916781409350117e-05,
+       -8.552239757521155e-05
+      ],
+      "lo": [
+       -0.010389201247500448,
+       -0.01793604838004133,
+       -0.0003867473820175208,
+       -0.000823365595904403
+      ],
+      "hi": [
+       0.006803380611204372,
+       0.01707761384699399,
+       0.00034666946014210256,
+       0.0006643448196507324
+      ]
+     }
+    ]
+   },
+   "chart-swap2smd": {
+    "groups": [
+     "Free naming, α = 1",
+     "Free naming, α = 2",
+     "Recognition, α = 1",
+     "Recognition, α = 2"
+    ],
+    "ytitle": "Δ margin, B over A (nats)",
+    "series": [
+     {
+      "name": "Swap",
+      "color": "#235fa6",
+      "y": [
+       0.5120981776394425,
+       1.0852686929509219,
+       0.00029063748326672303,
+       0.00021897938024704745
+      ],
+      "lo": [
+       0.430860447345652,
+       0.9176748071321283,
+       -0.00011088270555330446,
+       -0.0005211573102454313
+      ],
+      "hi": [
+       0.599281068228535,
+       1.2639564579167986,
+       0.0006790992921560749,
+       0.0009540086449200823
+      ]
+     },
+     {
+      "name": "Non-reference swap",
+      "color": "#b0702a",
+      "y": [
+       0.004298420418793588,
+       0.017568995946142727,
+       -6.764917516745757e-06,
+       9.956923393054928e-06
+      ],
+      "lo": [
+       -0.012852157985885241,
+       -0.012482409811267038,
+       -0.00035574855296176684,
+       -0.0006905234724731957
+      ],
+      "hi": [
+       0.023642596044225334,
+       0.05185636286363508,
+       0.0003151928399240648,
+       0.0006621950688372221
+      ]
+     },
+     {
+      "name": "Random perturbation",
+      "color": "#9a8f80",
+      "y": [
+       0.0012714309247409499,
+       0.003883916182409545,
+       -0.00015727844072758272,
+       -0.000356250277243772
+      ],
+      "lo": [
+       -0.001960451522296959,
+       -0.0028094070441951166,
+       -0.0004151716451785468,
+       -0.0008897020077719038
+      ],
+      "hi": [
+       0.0046202968997143485,
+       0.010453465053644017,
+       9.162716661682785e-05,
+       0.00014528117061119225
+      ]
+     }
+    ]
+   }
   }
  }
 }

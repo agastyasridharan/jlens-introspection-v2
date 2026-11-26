@@ -113,6 +113,25 @@ def sections():
                         [('Names A', '#235fa6', 6), ('Names B', '#b0702a', 6), ('Differs from no-edit report', '#2f8a57', 6)], x['chart_note'], x['chart_caption']))
         S.append(x['cond_table']); S.append(x['comp_table']); S.append(x['coord_table']); S.append(x['examples'])
         S.append('<h3>Disclosures</h3>' + x['disclosures'])
+    s2 = R.get('swap2')
+    if s2:
+        h2('swap2', '8b', 'Causal test with in-lens pairs (added 2026-11-25)')
+        S.append(s2['intro'])
+        if s2.get('answer'):
+            S.append(s2['answer'])
+        for p, pn in (('sw', 'Strongest–weakest'), ('sm', 'Strongest–median')):
+            c = s2['charts'][f'chart-swap2{p}']
+            S.append(figure(f'swap2{p}', f'{pn} pair: free-naming report under the swap and its two controls',
+                            [(s_['name'], s_['color'], 6) for s_ in c['series']], s2['note'], s2['captions'][p]))
+            c = s2['charts'][f'chart-swap2{p}r']
+            S.append(figure(f'swap2{p}r', f'{pn} pair: recognition over A, B, C, D (chance 25% per item)',
+                            [(s_['name'], s_['color'], 6) for s_ in c['series']], s2['rnote'], s2['rcaptions'][p]))
+            c = s2['charts'][f'chart-swap2{p}d']
+            S.append(figure(f'swap2{p}d', f'{pn} pair: change in log P(B) − log P(A) relative to the unedited run',
+                            [(s_['name'], s_['color'], 6) for s_ in c['series']], s2['dnote'], s2['dcaptions'][p]))
+        S.append(s2['delta_table']); S.append(s2['dcomp_table']); S.append(s2['dec_table'])
+        S.append(s2['cond_table']); S.append(s2['comp_table']); S.append(s2['coord_table']); S.append(s2['examples'])
+        S.append('<h3>Disclosures</h3>' + s2['disclosures'])
 
     h2('log', '9', 'Log')
     S.append('<ol class="log">' + ''.join(f'<li><time>{e["t"]}</time><div class="entry"><p>{e["text"]}</p></div></li>' for e in reversed(R['log'])) + '</ol>')

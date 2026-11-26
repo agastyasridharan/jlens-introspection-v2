@@ -41,6 +41,15 @@ function bars(id, groups, series, ymax, ytitle) {
     xaxis: axis({ type: "category" }), yaxis: grid({ range: [0, ymax], ticksuffix: "%", title: ttl(ytitle || "Matches lens reference"), showline: false, ticks: "" }) });
 }
 
+function dbars(id, groups, series, ytitle) {
+  const el = document.getElementById(id); if (!el) return;
+  const traces = series.map(s => ({ type: "bar", name: s.name, x: groups, y: s.y, marker: { color: s.color, line: { color: C.panel, width: 2 } },
+    error_y: { type: "data", symmetric: false, array: s.hi.map((h, i) => h - s.y[i]), arrayminus: s.lo.map((l, i) => s.y[i] - l), color: C.ink3, thickness: 1.2, width: 3 },
+    hovertemplate: "%{x}: %{y:+.2f} nats<extra>" + s.name + "</extra>" }));
+  draw(el, traces, { barmode: "group", bargap: 0.25, bargroupgap: 0.05, height: 330, margin: { l: 56, r: 8, t: 20, b: 34 },
+    xaxis: axis({ type: "category" }), yaxis: grid({ zeroline: true, zerolinecolor: C.ink3, zerolinewidth: 1, title: ttl(ytitle), showline: false, ticks: "" }) });
+}
+
 function figPerblock() {
   const el = document.getElementById("chart-perblock"); if (!el || !R.perblock) return;
   const P = R.perblock;
@@ -54,7 +63,8 @@ function figPerblock() {
 function render() {
   figCurve(); figPerblock();
   if (R.agree) bars("chart-agree", R.agree.groups, R.agree.series, R.agree.ymax || 100);
-  ["chart-swap", "chart-stab", "chart-loose", "chart-loosetier"].forEach(k => { if (R[k]) bars(k, R[k].groups, R[k].series, R[k].ymax, R[k].ytitle); });
+  ["chart-swap", "chart-stab", "chart-loose", "chart-loosetier", "chart-swap2sw", "chart-swap2swr", "chart-swap2sm", "chart-swap2smr"].forEach(k => { if (R[k]) bars(k, R[k].groups, R[k].series, R[k].ymax, R[k].ytitle); });
+  ["chart-swap2swd", "chart-swap2smd"].forEach(k => { if (R[k]) dbars(k, R[k].groups, R[k].series, R[k].ytitle); });
   if (R.recog) { R["chart-recog_chance"] = 25; bars("chart-recog", R.recog.groups, R.recog.series, R.recog.ymax || 100); }
 }
 let tmr; window.addEventListener("resize", () => { clearTimeout(tmr); tmr = setTimeout(render, 150); });
