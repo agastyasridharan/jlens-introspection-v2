@@ -7,7 +7,7 @@ E = html.escape
 CSS = open(os.path.join(HERE, 'style.css')).read()
 R = json.load(open(os.path.join(V5, 'results', 'v5.json')))
 SC = json.load(open(os.path.join(V5, 'stimuli', 'scaffolds.json')))
-NAV = [('index.html', 'Results (v2)'), ('protocol.html', 'Protocol v2'), ('v3.html', 'v3: Natural swap'), ('v4.html', 'v4: Cued hold'), ('v5.html', 'v5: Scaffolds')]
+NAV = [('index.html', 'Results (v2)'), ('protocol.html', 'Protocol v2'), ('v3.html', 'v3: Natural swap'), ('v4.html', 'v4: Cued hold'), ('v5.html', 'v5: Scaffolds'), ('exp1.html', 'Experiment 1'), ('scale.html', 'Exp 1 scaling')]
 FR = ['original', 'accurate', 'vague', 'poetic']
 DOCS = ['none', 'pro', 'lipsum', 'poetic', 'ellipses']
 FNAME = dict(original='Original wording', accurate='Accurate', vague='Vague', poetic='Poetic')
