@@ -54,7 +54,7 @@ function figPerblock() {
 function render() {
   figCurve(); figPerblock();
   if (R.agree) bars("chart-agree", R.agree.groups, R.agree.series, R.agree.ymax || 100);
-  ["chart-swap", "chart-stab"].forEach(k => { if (R[k]) bars(k, R[k].groups, R[k].series, R[k].ymax, R[k].ytitle); });
+  ["chart-swap", "chart-stab", "chart-loose", "chart-loosetier"].forEach(k => { if (R[k]) bars(k, R[k].groups, R[k].series, R[k].ymax, R[k].ytitle); });
   if (R.recog) { R["chart-recog_chance"] = 25; bars("chart-recog", R.recog.groups, R.recog.series, R.recog.ymax || 100); }
 }
 let tmr; window.addEventListener("resize", () => { clearTimeout(tmr); tmr = setTimeout(render, 150); });

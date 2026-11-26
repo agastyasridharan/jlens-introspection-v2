@@ -44,5 +44,10 @@ if sw:
     R['swap'] = sw
     R['charts'].update({'chart-swap': sw['charts']['swap'], 'chart-stab': sw['charts']['stab']})
 
+lo = load('loose.json')
+if lo:
+    R['loose'] = lo
+    R['charts'].update(lo['charts'])
+
 json.dump(R, open(os.path.join(HERE, 'data/results.json'), 'w'), indent=1, ensure_ascii=False)
 subprocess.run(['python3', os.path.join(HERE, 'build.py')], check=True)

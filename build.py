@@ -82,6 +82,15 @@ def sections():
         S.append(figure('recog', 'Recognition: share choosing the lens reference item (chance 25%)',
                         [('Answer required', '#235fa6', 6), ('Abstention allowed', '#b0702a', 6)],
                         mn['recog_note'], mn['recog_caption'], mn.get('recog_table')))
+        lo = R.get('loose')
+        if lo:
+            S.append(lo['html'])
+            S.append(figure('loose', 'Recognition: share choosing the top item, strict vs loose menu, with and without the hold (chance 25%)',
+                            [(s_['name'], s_['color'], 6) for s_ in lo['charts']['chart-loose']['series']], lo['note'], lo['caption'], lo['table']))
+            S.append(lo['contrast_table'])
+            S.append(figure('loosetier', 'Loose menu: where the picks go (chance 25% per option)',
+                            [(s_['name'], s_['color'], 6) for s_ in lo['charts']['chart-loosetier']['series']], lo['tnote'], lo['tcaption']))
+            S.append('<h4>Loose recognition: disclosures</h4>' + lo['disclosures'])
         h2('secondary', '6', 'Secondary analyses')
         S.append(mn['secondary_html'])
         if mn.get('perblock'):

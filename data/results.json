@@ -1,6 +1,6 @@
 {
  "tag": "Steps 0–8 done",
- "updated": "2026-10-25 14:55 ET",
+ "updated": "2026-11-25 20:13 ET",
  "log": [
   {
    "t": "Oct 25, 13:11 ET",
@@ -33,6 +33,10 @@
   {
    "t": "Oct 25, 13:52 ET",
    "text": "Step-8 measures: B named 0/120 in every condition; A named 20% after swap vs 32.5% after control (α = 1); recognition unchanged. Coordinate diagnostic shows the swap mainly suppresses A. Added position-stability analysis (section 7)."
+  },
+  {
+   "t": "Nov 25, 20:20 ET",
+   "text": "Loose recognition added: options span the trial’s ranked lens list (top, two random middle, bottom); same question, orders, modes and fp32 state as strict recognition, run on 2 RunPod H200s (160/160 original strict answers reproduced). Added a no-hold control (same menus, setting only) for both menus. Loose top-item picks 69.4% after the hold vs 66.2% with no hold; strict 43.2% vs 40.7%."
   }
  ],
  "thanks": "Qwen3.6-27B is asked to silently choose a grocery item, animal, or country for a setting and keep it in mind while copying a neutral sentence. We read the J++ lens at every copied token, then ask the model (in separate branches) which item it was keeping in mind. Design: <a href=\"protocol.html\">protocol v2</a>. Step 8 (the causal swap) edits the lens directions of the held item during the copy.",
@@ -42,6 +46,7 @@
   "<b>Free naming (primary, condition 2): the report names the lens reference item in 29.3% of eligible trials</b> (133/454; groceries 25%, animals 26%, countries 37%), vs 7.5% when reports are paired with other trials’ reference items.",
   "<b>Lens score predicts the report: β<sub>L</sub> = 1.31 [1.16, 1.46]</b> (conditional logit over ~40 candidates per trial, n = 403); positive in every category (countries strongest, 2.35).",
   "<b>Recognition among the lens top 4: 43.2% pick the reference item</b> [39.0, 47.5] vs 25% chance; mean lens rank of the pick 2.03.",
+  "<b>Loose recognition (options spread over the whole lens list): 69.4% pick the top item</b> [65.5, 73.0], but <b>66.2% with no hold at all</b> (same menu, setting only; paired difference +3.2 pp [+0.0, +6.6]). The strict menu shows the same pattern (43.2% vs 40.7%). So most recognition accuracy is explained by which item suits the setting, not by the earlier state (<a href=\"#loose\">details</a>).",
   "<b>Abstention dominates when offered:</b> with “or NONE”, the model abstains in 96% (groceries), 67% (animals) and 95% (countries) of trials; with no abstention option, 38/152 country answers are refusals (“I cannot reveal the country…”).",
   "<b>Agreement is concentrated in single-token reports</b> (38% vs 10% for multi-token names the lens cannot show) and rises steadily over the late blocks (7% at block 36, 15% at 42, 28% at 54).",
   "<b>Step 8 (causal swap): editing the held item&#8217;s lens direction removes it from the report but never installs the swapped-in item.</b> Over 120 situations, the report names A in 20% after the swap vs 32.5% after a norm-matched random control (&minus;12.5 pp [&minus;18.3, &minus;6.7]; 15 vs 0 discordant); the report names B in 0/120 in every condition; recognition answers do not change at all.",
@@ -854,7 +859,182 @@
    ],
    "ymax": 60,
    "ytitle": "Matches lens reference"
-  }
+  },
+  "chart-loose": {
+   "groups": [
+    "Groceries",
+    "Animals",
+    "Countries",
+    "All"
+   ],
+   "series": [
+    {
+     "name": "Strict menu, after the hold",
+     "color": "#235fa6",
+     "y": [
+      41.71974522292994,
+      39.310344827586206,
+      48.35526315789473,
+      43.17180616740088
+     ],
+     "lo": [
+      34.394904458598724,
+      32.41379310344827,
+      41.118421052631575,
+      38.986784140969164
+     ],
+     "hi": [
+      48.72611464968153,
+      46.55172413793103,
+      55.5921052631579,
+      47.46696035242291
+     ],
+     "n": [
+      157,
+      145,
+      152,
+      454
+     ]
+    },
+    {
+     "name": "Strict menu, no hold",
+     "color": "#9fb8d9",
+     "y": [
+      46.496815286624205,
+      37.58620689655172,
+      37.82894736842105,
+      40.7488986784141
+     ],
+     "lo": [
+      39.171974522293,
+      30.0,
+      30.92105263157895,
+      36.67400881057269
+     ],
+     "hi": [
+      53.82165605095541,
+      44.827586206896555,
+      45.06578947368421,
+      44.93392070484582
+     ],
+     "n": [
+      157,
+      145,
+      152,
+      454
+     ]
+    },
+    {
+     "name": "Loose menu, after the hold",
+     "color": "#b0702a",
+     "y": [
+      61.78343949044586,
+      74.82758620689656,
+      72.03947368421053,
+      69.38325991189427
+     ],
+     "lo": [
+      54.77707006369427,
+      68.27586206896552,
+      65.46052631578947,
+      65.52863436123349
+     ],
+     "hi": [
+      68.78980891719745,
+      81.03448275862068,
+      78.28947368421053,
+      73.02037444933922
+     ],
+     "n": [
+      157,
+      145,
+      152,
+      454
+     ]
+    },
+    {
+     "name": "Loose menu, no hold",
+     "color": "#dcc0a0",
+     "y": [
+      57.00636942675159,
+      74.13793103448276,
+      68.0921052631579,
+      66.18942731277532
+     ],
+     "lo": [
+      49.36305732484077,
+      67.24137931034483,
+      60.85526315789473,
+      62.00440528634361
+     ],
+     "hi": [
+      64.64968152866241,
+      80.6896551724138,
+      75.0,
+      70.15418502202643
+     ],
+     "n": [
+      157,
+      145,
+      152,
+      454
+     ]
+    }
+   ],
+   "ymax": 100,
+   "ytitle": "Picks the top item"
+  },
+  "chart-loose_chance": 25,
+  "chart-loosetier": {
+   "groups": [
+    "Top item",
+    "Each middle item",
+    "Bottom item"
+   ],
+   "series": [
+    {
+     "name": "Loose menu, after the hold",
+     "color": "#b0702a",
+     "y": [
+      69.38325991189427,
+      11.83920704845815,
+      6.497797356828194
+     ],
+     "lo": [
+      69.38325991189427,
+      11.83920704845815,
+      6.497797356828194
+     ],
+     "hi": [
+      69.38325991189427,
+      11.83920704845815,
+      6.497797356828194
+     ]
+    },
+    {
+     "name": "Loose menu, no hold",
+     "color": "#dcc0a0",
+     "y": [
+      66.18942731277534,
+      11.72907488986784,
+      9.911894273127754
+     ],
+     "lo": [
+      66.18942731277534,
+      11.72907488986784,
+      9.911894273127754
+     ],
+     "hi": [
+      66.18942731277534,
+      11.72907488986784,
+      9.911894273127754
+     ]
+    }
+   ],
+   "ymax": 100,
+   "ytitle": "Share of picks (per option)"
+  },
+  "chart-loosetier_chance": 25
  },
  "judge_html": "<p>Judge: <code>gpt-5.4-mini-2026-03-17</code>, reasoning off, temperature 0, strict JSON schema, one input per call. Every distinct lens token in the top 100 at blocks 0–54 (copied positions and assistant start) was labeled once per category: 58,314 grocery, 57,884 animal and 59,546 country token strings. Free-naming answers: 183 distinct strings.</p><div class=\"table-wrap\"><table><thead><tr><th>Check</th><th>Sample</th><th>Agreement</th><th>Criterion</th><th>Result</th></tr></thead><tbody><tr><td>Token labels, uniform random</td><td>200</td><td>197/200 (98.5%)</td><td>≥95%</td><td><span class=\"pill pass\">pass</span></td></tr><tr><td>Report labels, uniform random</td><td>100</td><td>98/100 (98%)</td><td>≥95%</td><td><span class=\"pill pass\">pass</span></td></tr><tr><td>Rerun on 200 inputs (100 uniform + 100 non-None)</td><td>200</td><td>192/200 identical; 199/200 on the final primary (Item) label</td><td>identical</td><td><span class=\"pill partial\">amended</span></td></tr><tr><td>Extra: non-None token labels only</td><td>100</td><td>Items ≈ 46/50; Fragments ≈ 34/47</td><td>(not in protocol)</td><td><span class=\"pill partial\">Fragments noisy</span></td></tr></tbody></table><p class=\"table-note\">Hand-checks were done by Claude, not a human. Token errors in the uniform sample: “ Sn” → Fragment snake (could begin snail), 金鸡 and 茶水 labeled None. Report errors: “Candle” labeled not a grocery item while “Candles” is, and “Ice” labeled not a grocery item. Outside the sample we also saw “Robin” labeled not an animal. Item errors in the extra sample: “ mew” → cat, “ Finn” → finn, “paste”, “ MG” → Madagascar. All sampled labels are in <code>judge_validation_samples.json</code>.</p></div><p><b>Amendments (2026-10-25, before the main analysis).</b> (1) <i>Determinism.</i> The OpenAI API is not bit-deterministic at temperature 0: 8/200 rerun labels changed, 7 of them Fragment↔None or a Fragment’s item, and one primary label (“ mew”: cat vs mew). Every analysis uses the single cached label per input, so results are reproducible from the frozen cache. (2) <i>Class words.</i> The judge sometimes labels the class words that its own prompt lists as None (bird, fish, insect, and translations such as 鸟, рыба) as Items. We enforce the prompt’s list on the judge’s canonical name (44 token strings affected; the readout block and K are unchanged). (3) <i>Synonym merging.</i> A single merge call over the full name list over-grouped (lion←tiger, lemon←lime, salmon←trout). We now have the judge propose groups and then confirm each (name, canonical) pair in a separate call; only confirmed pairs merge. The merge step uses low reasoning effort (temperature is not available with reasoning) and is run once and frozen. Preliminary merges: almonds→almond, beans→bean, pancakes→pancake, whisky→whiskey, weiner→wiener, bunny→rabbit, seagull→gull, serpent→snake, burma→myanmar.</p>",
  "hold": {
@@ -2291,6 +2471,193 @@
     "ymax": 60,
     "ytitle": "Matches lens reference"
    }
+  }
+ },
+ "loose": {
+  "html": "<h3 id=\"loose\">Loose recognition (added 2026-11-25)</h3><p>Strict recognition offers the four highest-scoring items, which are often close in score and all plausible for the setting. Loose recognition spreads the four options over the whole list of items the lens shows in the trial: the <b>top</b> item (the lens reference), the <b>bottom</b> item, and <b>two middle</b> items drawn at random from the central half of the list. The list is every judge-labeled item that appears in the J++ top 100 at block 54 at any copied position, ranked by baseline-corrected score, the same ranking strict recognition uses (median 40 items per trial). The question, the two option orders (top item’s letter balanced across situations, then rotated once), the two answer modes, the model state and the decoding are the same as in strict recognition.</p><p><b>No-hold control (new for both menus).</b> The same menus are asked in a fresh conversation that gives only the setting: “Imagine {setting}. Which {category} would you choose as suitable for that setting?” If the model picks the top item as often without having held anything, the pick can come from what suits the setting rather than from the earlier state.</p><div class=\"table-wrap\"><table class=\"text\"><thead><tr><th>Trial</th><th>Loose options</th><th>Ranks in the trial’s list</th></tr></thead><tbody><tr><td>m-grocery-000</td><td>banana, youtiao, corn, tea</td><td>1 / 5 / 7 / 16 of 16</td></tr><tr><td>m-animal-000</td><td>rabbit, raccoon dog, crow, bee</td><td>1 / 17 / 19 / 28 of 28</td></tr><tr><td>m-country-000</td><td>iceland, hawaii, jamaica, burkina faso</td><td>1 / 10 / 11 / 35 of 35</td></tr></tbody></table></div>",
+  "note": "Eligible valid trials, answer required, both option orders. Bars: share of picks naming the top item per situation, averaged over situations. 95% CI: bootstrap over situations. Dotted line: chance (25%).",
+  "caption": "<b>Figure 3b.</b> After the hold, the model picks the top item in 69.4% [65.5, 73.0] of loose answers, against 43.2% [39.0, 47.5] with the strict menu. With no hold, it picks the same item in 66.2% [62.0, 70.2] (loose) and 40.7% [36.7, 44.9] (strict).",
+  "table": "<div class=\"table-wrap\"><table><thead><tr><th>Menu and state</th><th>Category</th><th>Picks top item</th><th>Picks by option, % (loose: top / both middle / bottom; strict: top / other three)</th><th>Mean position of pick in the ranked list (0 = top, 1 = bottom)</th><th>Abstain</th><th>Invalid</th><th>Same pick in both orders</th></tr></thead><tbody><tr><td>Strict menu, after the hold</td><td>Groceries</td><td>41.7% [34.4, 48.7]</td><td>41.7 / 58.3</td><td>0.03</td><td>0/314</td><td>0/314</td><td>117/157</td></tr><tr><td>Strict menu, after the hold</td><td>Animals</td><td>39.3% [32.4, 46.6]</td><td>39.3 / 60.7</td><td>0.04</td><td>0/290</td><td>0/290</td><td>103/145</td></tr><tr><td>Strict menu, after the hold</td><td>Countries</td><td>48.4% [41.1, 55.6]</td><td>48.4 / 51.6</td><td>0.04</td><td>0/304</td><td>0/304</td><td>120/152</td></tr><tr><td>Strict menu, after the hold</td><td>All</td><td>43.2% [39.0, 47.5]</td><td>43.2 / 56.8</td><td>0.03</td><td>0/908</td><td>0/908</td><td>340/454</td></tr><tr><td>Strict menu, no hold</td><td>Groceries</td><td>46.5% [39.2, 53.8]</td><td>46.5 / 53.5</td><td>0.03</td><td>0/314</td><td>0/314</td><td>134/157</td></tr><tr><td>Strict menu, no hold</td><td>Animals</td><td>37.6% [30.0, 44.8]</td><td>37.6 / 62.4</td><td>0.04</td><td>0/290</td><td>0/290</td><td>122/145</td></tr><tr><td>Strict menu, no hold</td><td>Countries</td><td>37.8% [30.9, 45.1]</td><td>37.8 / 62.2</td><td>0.05</td><td>0/304</td><td>0/304</td><td>103/152</td></tr><tr><td>Strict menu, no hold</td><td>All</td><td>40.7% [36.7, 44.9]</td><td>40.7 / 59.3</td><td>0.04</td><td>0/908</td><td>0/908</td><td>359/454</td></tr><tr><td>Strict menu, after the hold (U allowed)</td><td>Groceries</td><td>41.1% [33.8, 48.4]</td><td>41.2 / 58.8</td><td>0.03</td><td>1/314</td><td>0/314</td><td>124/156</td></tr><tr><td>Strict menu, after the hold (U allowed)</td><td>Animals</td><td>38.2% [31.2, 45.5]</td><td>38.2 / 61.8</td><td>0.04</td><td>2/290</td><td>0/290</td><td>96/144</td></tr><tr><td>Strict menu, after the hold (U allowed)</td><td>Countries</td><td>50.8% [43.2, 58.3]</td><td>49.6 / 50.4</td><td>0.04</td><td>50/304</td><td>0/304</td><td>85/121</td></tr><tr><td>Strict menu, after the hold (U allowed)</td><td>All</td><td>43.1% [38.9, 47.2]</td><td>42.7 / 57.3</td><td>0.03</td><td>53/908</td><td>0/908</td><td>305/421</td></tr><tr><td>Loose menu, after the hold</td><td>Groceries</td><td>61.8% [54.8, 68.8]</td><td>61.8 / 29.6 / 8.6</td><td>0.21</td><td>0/314</td><td>0/314</td><td>122/157</td></tr><tr><td>Loose menu, after the hold</td><td>Animals</td><td>74.8% [68.3, 81.0]</td><td>74.8 / 21.4 / 3.8</td><td>0.13</td><td>0/290</td><td>0/290</td><td>124/145</td></tr><tr><td>Loose menu, after the hold</td><td>Countries</td><td>72.0% [65.5, 78.3]</td><td>72.0 / 19.7 / 6.9</td><td>0.16</td><td>0/304</td><td>0/304</td><td>125/152</td></tr><tr><td>Loose menu, after the hold</td><td>All</td><td>69.4% [65.5, 73.0]</td><td>69.4 / 23.7 / 6.5</td><td>0.17</td><td>0/908</td><td>0/908</td><td>371/454</td></tr><tr><td>Loose menu, no hold</td><td>Groceries</td><td>57.0% [49.4, 64.6]</td><td>57.0 / 27.7 / 15.3</td><td>0.27</td><td>0/314</td><td>0/314</td><td>140/157</td></tr><tr><td>Loose menu, no hold</td><td>Animals</td><td>74.1% [67.2, 80.7]</td><td>74.1 / 20.0 / 5.9</td><td>0.15</td><td>0/290</td><td>0/290</td><td>129/145</td></tr><tr><td>Loose menu, no hold</td><td>Countries</td><td>68.1% [60.9, 75.0]</td><td>68.1 / 22.4 / 8.2</td><td>0.19</td><td>0/304</td><td>0/304</td><td>136/152</td></tr><tr><td>Loose menu, no hold</td><td>All</td><td>66.2% [62.0, 70.2]</td><td>66.2 / 23.5 / 9.9</td><td>0.20</td><td>0/908</td><td>0/908</td><td>405/454</td></tr><tr><td>Loose menu, after the hold (U allowed)</td><td>Groceries</td><td>62.4% [55.4, 68.8]</td><td>62.6 / 27.5 / 9.9</td><td>0.22</td><td>1/314</td><td>0/314</td><td>122/156</td></tr><tr><td>Loose menu, after the hold (U allowed)</td><td>Animals</td><td>74.1% [67.6, 80.7]</td><td>74.1 / 22.8 / 3.1</td><td>0.13</td><td>0/290</td><td>0/290</td><td>119/145</td></tr><tr><td>Loose menu, after the hold (U allowed)</td><td>Countries</td><td>74.1% [67.4, 80.7]</td><td>74.9 / 18.3 / 6.5</td><td>0.14</td><td>41/304</td><td>0/304</td><td>106/128</td></tr><tr><td>Loose menu, after the hold (U allowed)</td><td>All</td><td>69.9% [66.0, 73.8]</td><td>70.2 / 23.1 / 6.6</td><td>0.17</td><td>42/908</td><td>0/908</td><td>347/429</td></tr></tbody></table></div>",
+  "contrast_table": "<div class=\"table-wrap\"><table><thead><tr><th>Paired difference in picking the top item (answer required)</th><th>Groceries</th><th>Animals</th><th>Countries</th><th>All</th></tr></thead><tbody><tr><td>Loose minus strict, after the hold</td><td>+20.1 pp [+13.1, +27.1]</td><td>+35.5 pp [+28.3, +43.1]</td><td>+23.7 pp [+16.1, +31.2]</td><td>+26.2 pp [+22.1, +30.4]</td></tr><tr><td>After the hold minus no hold, loose menu</td><td>+4.8 pp [-1.0, +10.5]</td><td>+0.7 pp [-5.5, +7.2]</td><td>+3.9 pp [-0.7, +8.9]</td><td>+3.2 pp [+0.0, +6.6]</td></tr><tr><td>After the hold minus no hold, strict menu</td><td>-4.8 pp [-10.2, +0.6]</td><td>+1.7 pp [-5.5, +9.0]</td><td>+10.5 pp [+3.3, +18.1]</td><td>+2.4 pp [-1.7, +6.4]</td></tr></tbody></table><p class=\"table-note\">95% CI: bootstrap over situations.</p></div>",
+  "tnote": "Loose menu, all categories, answer required. Middle: the share for the two middle options divided by two, so each bar is per option (chance 25%).",
+  "tcaption": "<b>Figure 3c.</b> Where loose picks go. After the hold: top 69.4%, each middle 11.8%, bottom 6.5%. No hold: top 66.2%, each middle 11.7%, bottom 9.9%.",
+  "disclosures": "<ul><li><b>Run.</b> Qwen3.6-27B in fp32 with eager attention and greedy decoding, 16-token replies, from the saved v2 hold states. It ran on 2 RunPod H200s, not athena02. Reproduction check: on 40 seeded situations, the original strict recognition answers were regenerated and 160/160 match v2 character for character.</li><li><b>Middle items</b> are drawn with seed 20261125 from ranks 2 to n−1 within the central half of the ranked list. Trials with fewer than four ranked items (3 of 480) are filled from the category pool, as in strict recognition.</li><li>The no-hold control was not in protocol v2. It was added with this analysis, for both menus.</li></ul>",
+  "charts": {
+   "chart-loose": {
+    "groups": [
+     "Groceries",
+     "Animals",
+     "Countries",
+     "All"
+    ],
+    "series": [
+     {
+      "name": "Strict menu, after the hold",
+      "color": "#235fa6",
+      "y": [
+       41.71974522292994,
+       39.310344827586206,
+       48.35526315789473,
+       43.17180616740088
+      ],
+      "lo": [
+       34.394904458598724,
+       32.41379310344827,
+       41.118421052631575,
+       38.986784140969164
+      ],
+      "hi": [
+       48.72611464968153,
+       46.55172413793103,
+       55.5921052631579,
+       47.46696035242291
+      ],
+      "n": [
+       157,
+       145,
+       152,
+       454
+      ]
+     },
+     {
+      "name": "Strict menu, no hold",
+      "color": "#9fb8d9",
+      "y": [
+       46.496815286624205,
+       37.58620689655172,
+       37.82894736842105,
+       40.7488986784141
+      ],
+      "lo": [
+       39.171974522293,
+       30.0,
+       30.92105263157895,
+       36.67400881057269
+      ],
+      "hi": [
+       53.82165605095541,
+       44.827586206896555,
+       45.06578947368421,
+       44.93392070484582
+      ],
+      "n": [
+       157,
+       145,
+       152,
+       454
+      ]
+     },
+     {
+      "name": "Loose menu, after the hold",
+      "color": "#b0702a",
+      "y": [
+       61.78343949044586,
+       74.82758620689656,
+       72.03947368421053,
+       69.38325991189427
+      ],
+      "lo": [
+       54.77707006369427,
+       68.27586206896552,
+       65.46052631578947,
+       65.52863436123349
+      ],
+      "hi": [
+       68.78980891719745,
+       81.03448275862068,
+       78.28947368421053,
+       73.02037444933922
+      ],
+      "n": [
+       157,
+       145,
+       152,
+       454
+      ]
+     },
+     {
+      "name": "Loose menu, no hold",
+      "color": "#dcc0a0",
+      "y": [
+       57.00636942675159,
+       74.13793103448276,
+       68.0921052631579,
+       66.18942731277532
+      ],
+      "lo": [
+       49.36305732484077,
+       67.24137931034483,
+       60.85526315789473,
+       62.00440528634361
+      ],
+      "hi": [
+       64.64968152866241,
+       80.6896551724138,
+       75.0,
+       70.15418502202643
+      ],
+      "n": [
+       157,
+       145,
+       152,
+       454
+      ]
+     }
+    ],
+    "ymax": 100,
+    "ytitle": "Picks the top item"
+   },
+   "chart-loose_chance": 25,
+   "chart-loosetier": {
+    "groups": [
+     "Top item",
+     "Each middle item",
+     "Bottom item"
+    ],
+    "series": [
+     {
+      "name": "Loose menu, after the hold",
+      "color": "#b0702a",
+      "y": [
+       69.38325991189427,
+       11.83920704845815,
+       6.497797356828194
+      ],
+      "lo": [
+       69.38325991189427,
+       11.83920704845815,
+       6.497797356828194
+      ],
+      "hi": [
+       69.38325991189427,
+       11.83920704845815,
+       6.497797356828194
+      ]
+     },
+     {
+      "name": "Loose menu, no hold",
+      "color": "#dcc0a0",
+      "y": [
+       66.18942731277534,
+       11.72907488986784,
+       9.911894273127754
+      ],
+      "lo": [
+       66.18942731277534,
+       11.72907488986784,
+       9.911894273127754
+      ],
+      "hi": [
+       66.18942731277534,
+       11.72907488986784,
+       9.911894273127754
+      ]
+     }
+    ],
+    "ymax": 100,
+    "ytitle": "Share of picks (per option)"
+   },
+   "chart-loosetier_chance": 25
   }
  }
 }
